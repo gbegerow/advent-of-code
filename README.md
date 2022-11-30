@@ -1,2 +1,5 @@
 # advent-of-code
-Advent of Code Solutions  by Georg Begerow Language: rust 2021
+Advent of Code Solutions  
+by Georg Begerow 
+
+Language: Rust 2021
