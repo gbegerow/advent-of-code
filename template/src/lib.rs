@@ -24,9 +24,24 @@ mod tests {
     // }
 
     #[test]
+    fn part_a_test() {
+        // paste test input
+        assert_eq!(super::part_a(""), 0);
+    }
+
+
+    #[test]
     fn part_a() {
         assert_eq!(super::part_a(read_input()), 0);
     }
+
+    
+    #[test]
+    fn part_b_test() {
+        // paste test input
+        assert_eq!(super::part_a(""), 0);
+    }
+
 
     #[test]
     fn part_b() {

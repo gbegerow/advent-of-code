@@ -6,13 +6,13 @@ PARAM (
 )
 $folder = "aoc_{0:0000}_{1:00}" -f $year, $day;
 
-# copy template folder
 if (-not (Test-Path $folder)) {
     "Create $folder"
-
+    
+    # copy template folder
     Copy-Item -Recurse -path $template -dest $folder
 
-    # add folder to workspace
+    # add folder to rust workspace
     $workspace = switch -Regex -File $workspaceFile {
         '^\s*]$' { 
             '"{0}",' -f $folder
@@ -24,7 +24,8 @@ if (-not (Test-Path $folder)) {
 
     Push-Location $folder
 
-    #get input (curl is easier as invoke-webrequest)
+    # download input (curl is easier as invoke-webrequest)
+    # expect session code in environment aoc_session
     $uri = "https://adventofcode.com/$year/day/$day/input"
     curl $uri --cookie "session=$env:aoc_session" -o "src/input.txt"
 
