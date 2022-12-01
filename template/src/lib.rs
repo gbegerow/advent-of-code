@@ -1,14 +1,11 @@
 pub fn part_a(input: &str) -> usize {
-    for line in input.trim().lines() {
-        //
-    }
+    // for line in input.trim().lines() {
+    //     //
+    // }
     0
 }
 
 pub fn part_b(input: &str) -> usize {
-    for line in input.trim().lines() {
-        //
-    }
     0
 }
 
@@ -24,31 +21,29 @@ mod tests {
     #[test]
     fn part_a_example() {
         // paste test input
-        assert_eq!(super::part_a(""), 0);
+        assert_eq!(super::part_a(TEST_INPUT), 0);
     }
 
 
     #[test]
     fn part_a() {
-        assert_eq!(super::part_a(read_input()), 0);
+        assert_eq!(super::part_a(include_str!("input.txt")), 0);
     }
 
     
     #[test]
     fn part_b_example() {
         // paste test input
-        assert_eq!(super::part_a(""), 0);
+        assert_eq!(super::part_b(TEST_INPUT), 0);
     }
 
 
     #[test]
     fn part_b() {
-        assert_eq!(super::part_b(read_input()), 0);
+        assert_eq!(super::part_b(include_str!("input.txt")), 0);
     }
 
-    fn read_input() -> &str{
-        include_str!("input.txt")
-    }
+    const TEST_INPUT: &str = "";
 }
 
 
