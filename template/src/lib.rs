@@ -12,9 +12,7 @@ pub fn part_b(input: &str) -> usize {
     0
 }
 
-fn read_input() -> &str{
-    include_str!("input.txt")
-}
+
 
 #[cfg(test)]
 mod tests {
@@ -24,7 +22,7 @@ mod tests {
     // }
 
     #[test]
-    fn part_a_test() {
+    fn part_a_example() {
         // paste test input
         assert_eq!(super::part_a(""), 0);
     }
@@ -37,7 +35,7 @@ mod tests {
 
     
     #[test]
-    fn part_b_test() {
+    fn part_b_example() {
         // paste test input
         assert_eq!(super::part_a(""), 0);
     }
@@ -46,6 +44,10 @@ mod tests {
     #[test]
     fn part_b() {
         assert_eq!(super::part_b(read_input()), 0);
+    }
+
+    fn read_input() -> &str{
+        include_str!("input.txt")
     }
 }
 
