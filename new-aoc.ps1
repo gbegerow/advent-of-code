@@ -38,6 +38,25 @@ if (-not (Test-Path $folder)) {
     } 
     $toml | Set-Content ".\cargo.toml" -Force
 
+    # modify cargo.toml
+    $toml = switch -Regex -File ".\cargo.toml" {
+        '^\s*name=' { 
+            'name="{0}"' -f $folder
+        }
+        Default { $_ }
+    } 
+    $toml | Set-Content ".\cargo.toml" -Force
+
+    # modify lib.rs to have better names for test
+    $lib = switch -Regex -File ".\src\lib.rs" {
+        '^\s*fn (part|aoc_\d+_\d+)_(.+)\(\) {' { 
+            'fn {0}{1}() {{' -f $folder, $Matches.2
+        }
+        Default { $_ }
+    } 
+    $lib | Set-Content ".\src\lib.rs" -Force
+
+
     Pop-Location
 
     git add .

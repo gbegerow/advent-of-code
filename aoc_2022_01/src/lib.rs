@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     fn part_a() {
-        assert_eq!(super::part_a(include_str!("input.txt")), 0);
+        assert_eq!(super::part_a(include_str!("input.txt")), 73211);
     }
 
     
