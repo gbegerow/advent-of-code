@@ -1,6 +1,6 @@
 PARAM (
-    [int] $day = ((Get-Date).Day),
-    [int] $year = ((Get-Date).Year),
+    [int] $day = 01,# ((Get-Date).Day),
+    [int] $year =2021,# ((Get-Date).Year),
     [string] $template = (".\template"),
     [string] $workspaceFile = (".\cargo.toml")
 )
@@ -31,26 +31,20 @@ if (-not (Test-Path $folder)) {
 
     # modify cargo.toml
     $toml = switch -Regex -File ".\cargo.toml" {
-        '^\s*name=' { 
-            'name="{0}"' -f $folder
+        '^\s*name\s*=\s*' { 
+            'name = "{0}"' -f $folder
         }
         Default { $_ }
     } 
     $toml | Set-Content ".\cargo.toml" -Force
 
-    # modify cargo.toml
-    $toml = switch -Regex -File ".\cargo.toml" {
-        '^\s*name=' { 
-            'name="{0}"' -f $folder
-        }
-        Default { $_ }
-    } 
-    $toml | Set-Content ".\cargo.toml" -Force
-
-    # modify lib.rs to have better names for test
+    # modify lib.rs to have better names for test (maybe go the full way and simply replace all occurences?)
     $lib = switch -Regex -File ".\src\lib.rs" {
-        '^\s*fn (part|aoc_\d+_\d+)_(.+)\(\) {' { 
-            'fn {0}{1}() {{' -f $folder, $Matches.2
+        '^(.*)fn (part|aoc_\d+_\d+)_(.+)$' { 
+            '{2}fn {0}_{1}' -f $folder, $Matches.3, $Matches.1
+        }
+        '^(.*)assert_eq!\(super::(part|aoc_\d+_\d+)_(.+)$' {
+            '{2}assert_eq!(super::{0}_{1}' -f $folder, $Matches.3, $Matches.1
         }
         Default { $_ }
     } 
@@ -65,5 +59,5 @@ if (-not (Test-Path $folder)) {
 #open in editor
 code . ".\$folder\src\lib.rs"
 
-# start watching (better in code terminal?)
+# start watching (better in code terminal?) (some conflicts with vscode )
 #cargo watch -x "test -p $folder --release -- --nocapture"
