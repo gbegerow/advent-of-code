@@ -1,6 +1,6 @@
 PARAM (
-    [int] $day = 01,# ((Get-Date).Day),
-    [int] $year =2021,# ((Get-Date).Year),
+    [int] $day = ((Get-Date).Day),
+    [int] $year = ((Get-Date).Year),
     [string] $template = (".\template"),
     [string] $workspaceFile = (".\cargo.toml")
 )
