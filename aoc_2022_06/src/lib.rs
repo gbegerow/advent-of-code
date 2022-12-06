@@ -1,9 +1,14 @@
 use std::{collections::HashMap};
 
-
-
 pub fn aoc_2022_06_a(input: &str) -> usize {
     if let Some(value) = find_distinct_window(input, 4) {
+        return value;
+    }
+    0
+}
+
+pub fn aoc_2022_06_b(input: &str) -> usize {
+    if let Some(value) = find_distinct_window(input, 14) {
         return value;
     }
     0
@@ -35,16 +40,6 @@ fn find_distinct_window(input: &str, win_size:usize) -> Option<usize> {
     }
     None
 }
-
-pub fn aoc_2022_06_b(input: &str) -> usize {
-    if let Some(value) = find_distinct_window(input, 14) {
-        return value;
-    }
-    0
-}
-
-
-
 
 #[cfg(test)]
 mod tests {
