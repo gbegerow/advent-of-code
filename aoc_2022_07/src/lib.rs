@@ -1,5 +1,5 @@
 /*
-    After gotten burned pretty hard with a traditional mutatable node based tree
+    After gotten burned pretty hard with a traditional mutable node based tree
     and seeing lots of the discussions on reddit, I try to simplify it like raul100 did.
     I don't want to directly take an AreanaTree, but I take some ideas from it and ECS.
     For my own sanity I want to keep the names of directories. Technically we only need
@@ -39,7 +39,7 @@ fn parse_screen(input: &str) -> Vec<Directory> {
         if let Some(cap) = dir_rx.captures(line) {
             // println!("CD {}", cap.get(0).unwrap().as_str());
             match &cap["target"] {
-                "/" => cwd = 0,
+                "/" => cwd = root,
                 ".." => cwd = directories[cwd].parent,
                 name => {
                     // put it in filesystem. We never visit a dir twice so it's safe.
