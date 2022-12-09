@@ -24,10 +24,10 @@ if (-not (Test-Path $folder)) {
 
     Push-Location $folder
 
-    # download input (curl is easier as invoke-webrequest)
+    # download input (only once) (curl is easier than invoke-webrequest)
     # expect session code in environment aoc_session
     $uri = "https://adventofcode.com/$year/day/$day/input"
-    curl $uri --cookie "session=$env:aoc_session" -o "src/input.txt"
+    curl $uri --cookie "session=$env:aoc_session" -o "src/input.txt" -A "gbegerow@gmail.com via curl"
 
     # modify cargo.toml
     $toml = switch -Regex -File ".\cargo.toml" {
