@@ -69,7 +69,7 @@ fn do_moves(moves: Vec<(i32, i32)>, len: usize) -> HashSet<(i32, i32)> {
             if dy != 0 { snake[i].1 += dy/dy.abs(); }
         }
 
-        // println!("H{:?} T{:?}", head, tail);
+        // println!("H{:?} T{:?}", snake[0], snake[len-1]);
         visited.insert(snake[len-1]);
     }
 
