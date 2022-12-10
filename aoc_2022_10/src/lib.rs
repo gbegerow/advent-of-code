@@ -85,7 +85,7 @@ impl Cpu {
             if *c == b'#' {
                 stdout
                     .queue(cursor::MoveTo(col, row))?
-                    .queue(style::PrintStyledContent("#".magenta()))?;
+                    .queue(style::PrintStyledContent("█".green()))?;
             }
 
             col += 1;
