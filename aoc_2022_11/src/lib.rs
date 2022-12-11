@@ -131,7 +131,7 @@ fn do_monkey_business( monkeys: Vec<Monkey>, mut all_items: Vec<VecDeque<u64>>, 
 pub fn aoc_2022_11_a(input: &str) -> u64 {
     let (rules, items) = parse_monkeys(input);
     let mut counts = do_monkey_business(rules, items, 20, 3);
-    println!("Counts: {:?}", counts);
+    // println!("Counts: {:?}", counts);
     counts.sort_unstable();
 
     let last = counts.len() -1;
@@ -141,7 +141,7 @@ pub fn aoc_2022_11_a(input: &str) -> u64 {
 pub fn aoc_2022_11_b(input: &str) -> u64 {
     let (rules, items) = parse_monkeys(input);
     let mut counts = do_monkey_business(rules, items, 10000, 1);
-    println!("Counts: {:?}", counts);
+    // println!("Counts: {:?}", counts);
     counts.sort_unstable();
 
     let last = counts.len() -1;

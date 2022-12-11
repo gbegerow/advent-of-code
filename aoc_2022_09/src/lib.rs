@@ -65,8 +65,9 @@ fn do_moves(moves: Vec<(i32, i32)>, len: usize) -> HashSet<(i32, i32)> {
 
             //println!("{dx} {dy}");
             // move tail in direction of head, but only one step
-            if dx != 0 { snake[i].0 += dx/dx.abs(); }
-            if dy != 0 { snake[i].1 += dy/dy.abs(); }
+            // Thanks to u/BadHumourInside: You can use dx.signum() instead of dx/dx.abs()
+            if dx != 0 { snake[i].0 += dx.signum(); }
+            if dy != 0 { snake[i].1 += dy.signum(); }
         }
 
         // println!("H{:?} T{:?}", snake[0], snake[len-1]);
