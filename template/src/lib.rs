@@ -1,3 +1,5 @@
+// #[allow(dead_code)]
+
 pub fn part_a(input: &str) -> usize {
     // for line in input.trim().lines() {
     //     //

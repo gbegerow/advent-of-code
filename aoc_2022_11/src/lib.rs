@@ -1,9 +1,8 @@
 
 use std::collections::VecDeque;
-
-// use itertools::Itertools;
 use regex::Regex;
-#[allow(dead_code)]
+// #[allow(dead_code)]
+
 #[derive(Debug)]
 struct Monkey {
     index: usize,
