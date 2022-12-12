@@ -54,12 +54,12 @@ impl Grid {
         from.x.abs_diff(to.x) + from.y.abs_diff(to.y) // + self.height_distance(from, to)
     }
 
-    fn height_distance(&self, from: &Point, to: &Point) -> usize{
-         match (self.get(from), self.get(to)) {
-            (Some(f), Some(t)) =>  (f as usize).abs_diff(t as usize),
-            _ =>  usize::MAX, // panic!("Point outside of bounds"),
-         }
-    }
+    // fn height_distance(&self, from: &Point, to: &Point) -> usize{
+    //      match (self.get(from), self.get(to)) {
+    //         (Some(f), Some(t)) =>  (f as usize).abs_diff(t as usize),
+    //         _ =>  usize::MAX, // panic!("Point outside of bounds"),
+    //      }
+    // }
 
     
 
@@ -67,12 +67,19 @@ impl Grid {
         self.get_relative_positions(p, Self::get_adjacent_axis_positions())
             .into_iter()
             // 1 lower or higher
-            .filter(|n| self.height_distance(p, n) < 2)
+            // .filter(|n| self.height_distance(p, n) < 2)
             // only 1 higher not lower
             // .filter(|n| match (self.get(p), self.get(n)) {
             //     (Some(f), Some(t)) => f <= t && (f as usize).abs_diff(t as usize) < 2,
             //     _ =>  false
             //  })
+            // only 1 higher or any lower 
+            // "(This also means that the elevation of the destination square 
+            //    can be much lower than the elevation of your current square.)""
+            .filter(|n| match (self.get(p), self.get(n)) {
+                (Some(f), Some(t)) => f as usize +1 >= t as usize,
+                _ =>  false
+             })
             .collect()
     }
 
@@ -134,28 +141,28 @@ impl Grid {
     }
 
     // A* with Manhattan distance as heuristic. Implementation of https://en.wikipedia.org/wiki/A*_search_algorithm
-    pub fn a_star(&mut self) -> Option<Vec<Point>>
+    pub fn a_star(&mut self, start:&Point) -> Option<Vec<Point>>
     {
         let capacity = self.width*self.height;
         
         // The set of discovered nodes that may need to be (re-)expanded.
         // Initially, only the start node is known.
         let mut open = PriorityQueue::new();
-        open.push(self.start.clone(), 1);
+        open.push(start.clone(), 1);
 
          // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
         // to n currently known.
         let mut came_from = HashMap::with_capacity(capacity);
         // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
         let mut g_score:HashMap<Point, usize> = HashMap::with_capacity(capacity);
-        g_score.insert(self.start.clone(), 0);
+        g_score.insert(start.clone(), 0);
         // For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
         // how cheap a path could be from start to finish if it goes through n.
         let mut f_score:HashMap<Point, usize> = HashMap::with_capacity(capacity);
-        f_score.insert(self.start.clone(), self.distance(&self.start, &self.end));
+        f_score.insert(start.clone(), self.distance(&start, &self.end));
 
-        println!("{}x{}={} start: {} end: {}", 
-            self.width, self.height, capacity, self.start, self.end);
+        // println!("{}x{}={} start: {} end: {}", 
+        //     self.width, self.height, capacity, start, self.end);
 
         while let Some((current, _)) = open.pop() {
             // print!("{current}");
@@ -189,6 +196,18 @@ impl Grid {
 
         // Open set is empty but goal was never reached
         None
+    }
+
+    pub fn scan_for_lowest(&self) -> Vec<Point>{
+        // could exclude some positions early for optimization but I don't care
+        let mut positions = Vec::new();    
+        for (i,c) in self.values.iter().enumerate() {
+            match c {
+                'S' | 'a' => positions.push( Point { x:i % self.width, y:i / self.width }),
+                _ => ()
+            }
+        }
+        positions
     }
 }  
 
@@ -228,16 +247,30 @@ impl FromStr for Grid{
 
 pub fn aoc_2022_12_a(input: &str) -> usize {
     let mut grid :Grid = input.parse().expect("invalid grid");
-    if let Some(path) = grid.a_star(){
-        println!("Path {:?}", path);
+    let start = grid.start.clone();
+    if let Some(path) = grid.a_star(&start){
+        // println!("Path {:?}", path);
         path.len()-1 // start does not count
     } else {
         panic!("No path found")
     }
 }
 
-pub fn aoc_2022_12_b(_input: &str) -> usize {
-    0
+pub fn aoc_2022_12_b(input: &str) -> usize {
+    let mut shortest = usize::MAX;
+    let mut grid :Grid = input.parse().expect("invalid grid");
+    
+    for p in grid.scan_for_lowest() {  
+        // in this case it would have been much more optimal to use Dijstra instead of A*
+        // as it would have calculated all shortest paths in one go
+        // but still fast enough that I don't care about it
+        if let Some(path) = grid.a_star(&p){
+            if shortest > path.len() {
+                shortest = path.len();
+            }
+        }
+    }
+    shortest - 1
 }
 
 
@@ -251,17 +284,17 @@ mod tests {
 
     #[test]
     fn aoc_2022_12_a() {
-       assert_eq!(super::aoc_2022_12_a(include_str!("input.txt")), 0);
+       assert_eq!(super::aoc_2022_12_a(include_str!("input.txt")), 534);
     }
     
     #[test]
     fn aoc_2022_12_b_example() {
-        assert_eq!(super::aoc_2022_12_b(TEST_INPUT), 0);
+        assert_eq!(super::aoc_2022_12_b(TEST_INPUT), 29);
     }
 
     #[test]
     fn aoc_2022_12_b() {
-        assert_eq!(super::aoc_2022_12_b(include_str!("input.txt")), 0);
+        assert_eq!(super::aoc_2022_12_b(include_str!("input.txt")), 525);
     }
 
     const TEST_INPUT: &str = "
