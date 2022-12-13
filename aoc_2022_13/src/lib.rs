@@ -53,13 +53,13 @@ impl FromStr for Package {
         if s.starts_with("[") {
 
             // we have a list
-            let striped = s
+            let stripped = s
                 .strip_prefix("[").unwrap()
                 .strip_suffix("]").unwrap();
-            if striped.len() == 0 {return Ok(Package::List(Vec::new()))}
+            if stripped.is_empty() {return Ok(Package::List(Vec::new()))}
 
-            let list = striped
-                .split(",")
+            let list = stripped
+                .split(",") // split will splitt inside of lists :-(
                 .map(|p| p.parse::<Package>().unwrap())
                 .collect();
             Ok(Package::List(list))
