@@ -50,7 +50,7 @@ impl SensorArea {
 fn parse(input: &str) -> Vec<SensorArea> {
     // no need for complex parser
     // Sensor at x=2317632, y=2942537: closest beacon is at x=2342391, y=2905242
-    let rx = Regex::new(r"Sensor at x=(?P<sx>\d+), y=(?P<sy>\d+): closest beacon is at x=(?P<bx>\d+), y=(?P<by>\d+)").unwrap();
+    let rx = Regex::new(r"Sensor at x=(?P<sx>[-\d]+), y=(?P<sy>[-\d]+): closest beacon is at x=(?P<bx>[-\d]+), y=(?P<by>[-\d]+)").unwrap();
     let mut data = Vec::with_capacity(100);
     for caps in rx.captures_iter(input) {
         data.push(SensorArea::new(
@@ -134,7 +134,7 @@ pub fn aoc_2022_15_a(input: &str, sensor_row: i64) -> usize {
     println!("{:?}", merged_ranges);
 
     let known = 
-        merged_ranges.iter().map(|r| r.len()).sum::<usize>()
+        merged_ranges.iter().map(|r| (r.end - r.start) as usize).sum::<usize>() // len not defined for i64
             - sensors.len()
             - beacons.len();
 
@@ -152,6 +152,7 @@ pub fn aoc_2022_15_b(_input: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
+
 
     use crate::{SensorArea, distance, visible};
 
@@ -196,7 +197,7 @@ mod tests {
         print("Def not beacon Pos: ", len(xPos))
         */
         const SENSOR_ROW:i64 = 2000000;
-        let data = super::parse(include_str!("input.txt"));
+        let data: Vec<SensorArea> = super::parse(include_str!("input.txt"));
         let mut  x_pos = HashSet::with_capacity(2048);
         for d in data {
             let beacon_dist = (d.beacon.x - d.sensor.x).abs() + (d.beacon.y - d.sensor.y).abs();    
@@ -241,7 +242,49 @@ mod tests {
     #[test]
     fn test_all_beacons_in_distance() {
         let data = super::parse(TEST_INPUT);
-        assert!(data.iter().all(|d| distance(d.sensor.x, d.sensor.y, d.beacon.x, d.beacon.y) <= d.distance ), "Not all beacons are in distance")
+        assert!(data.iter().all(|d| distance(d.sensor.x, d.sensor.y, d.beacon.x, d.beacon.y) <= d.distance ), 
+        "Not all beacons are in distance")
+    }
+
+    #[test]
+    fn parse_should(){ // parse did not parse negative numbers :-(
+        assert_eq!(super::parse(include_str!("input.txt")), vec![
+            SensorArea::new(9450, 2172986, -657934, 1258930),
+            SensorArea::new(96708, 1131866, -657934, 1258930),
+            SensorArea::new(1318282, 3917725, -39403, 3757521),
+            SensorArea::new(3547602, 1688021, 3396374, 1626026),
+            SensorArea::new(3452645, 2433208, 3249864, 2880665),
+            SensorArea::new(46113, 3689394, -39403, 3757521),
+            SensorArea::new(2291648, 2980268, 2307926, 3005525),
+            SensorArea::new(3127971, 2022110, 3396374, 1626026),
+            SensorArea::new(2301436, 2996160, 2307926, 3005525),
+            SensorArea::new(2989899, 3239346, 3551638, 3263197),
+            SensorArea::new(544144, 3031363, -39403, 3757521),
+            SensorArea::new(3706626, 767329, 3396374, 1626026),
+            SensorArea::new(2540401, 2746490, 2342391, 2905242),
+            SensorArea::new(2308201, 2997719, 2307926, 3005525),
+            SensorArea::new(782978, 1855194, 1720998, 2000000),
+            SensorArea::new(2317632, 2942537, 2342391, 2905242),
+            SensorArea::new(1902546, 2461891, 1720998, 2000000),
+            SensorArea::new(3967424, 1779674, 3396374, 1626026),
+            SensorArea::new(2970495, 2586314, 3249864, 2880665),
+            SensorArea::new(3560435, 3957350, 3551638, 3263197),
+            SensorArea::new(3932297, 3578328, 3551638, 3263197),
+            SensorArea::new(2819004, 1125748, 3396374, 1626026),
+            SensorArea::new(2793841, 3805575, 3015097, 4476783),
+            SensorArea::new(3096324, 109036, 3396374, 1626026),
+            SensorArea::new(3678551, 3050855, 3551638, 3263197),
+            SensorArea::new(1699186, 3276187, 2307926, 3005525),
+            SensorArea::new(3358443, 3015038, 3249864, 2880665),
+            SensorArea::new(2309805, 1755792, 1720998, 2000000),
+            SensorArea::new(2243001, 2876549, 2342391, 2905242),
+            SensorArea::new(2561955, 3362969, 2307926, 3005525),
+            SensorArea::new(2513546, 2393940, 2638370, 2329928),
+            SensorArea::new(1393638, 419289, 1720998, 2000000),
+            SensorArea::new(2696979, 2263077, 2638370, 2329928),
+            SensorArea::new(3842041, 2695378, 3249864, 2880665),
+            
+        ]);
     }
 
     // #[test]
