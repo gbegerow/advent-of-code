@@ -9,18 +9,18 @@ use std::io::{stdout, Write};
 
 
 // use itertools::Itertools;
-// #[allow(dead_code)]
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 struct Coordinate { x: i32, y: i32 }
 
+#[allow(dead_code)]
 enum Tile {
     Air,
     Rock,
     Sand
 }
 
-fn unroll(s:&Coordinate, e:&Coordinate) -> Vec<Coordinate> {
+fn unroll(s:&Coordinate, e:&Coordinate) -> Vec<(Coordinate, Tile)> {
     let dx = (s.x - e.x).signum();
     let dy = (s.y - e.y).signum();
 
@@ -28,7 +28,7 @@ fn unroll(s:&Coordinate, e:&Coordinate) -> Vec<Coordinate> {
     let mut ret = Vec::with_capacity(if dx > dy {dx} else {dy} as usize);
     while &current != e { // TODO Box???
         let next = Coordinate {x: &current.x + dx, y:&current.y + dy}; 
-        ret.push(current.to_owned());
+        ret.push((current.to_owned(), Tile::Rock));
         current = next; 
     }
     ret
@@ -39,21 +39,19 @@ fn parse(input: &str) -> HashMap<Coordinate, Tile>{
         .flat_map(|l| l
             .split("->")
             .filter_map(|p| p.split_once(","))
-            .map(|(xs, ys)| Coordinate { x: xs.parse().unwrap(), y: ys.parse().unwrap() })
+            .map(|(xs, ys)| Coordinate { x: xs.trim().parse().unwrap(), y: ys.trim().parse().unwrap() })
             .collect::<Vec<_>>()
-            .windows(2)
-            .flat_map(|&[s,e]| 
-                unroll(&s, &e).iter()
-                .map(|c| (c, Tile::Rock)))
+            .chunks(2)
+            .flat_map(|slice| match slice { // make pattern 
+                &[s,e] => unroll(&s, &e),
+                _ => panic!("invalid chunk size"),
+            }) 
             .collect::<Vec<_>>()
         ).collect()
 }
 
 fn draw_cave(map: &HashMap<Coordinate, Tile>, spawner: &Coordinate, location: Option<&Coordinate>) -> Result<()> {
     let mut stdout = stdout();
-
-    let mut row: u16 = 0;
-    let mut col: u16 = 0;
 
     stdout.queue(terminal::Clear(terminal::ClearType::All))?;
     // stdout.queue(cursor::MoveToNextLine(1))?;
@@ -88,7 +86,7 @@ pub fn aoc_2022_14_a(input: &str) -> usize {
     let map = parse(input);
     let spawner = Coordinate { x: 500, y: 0 };
 
-    draw_cave(&map, &spawner, None);
+    draw_cave(&map, &spawner, None).unwrap_or_default();
     0
 }
 
