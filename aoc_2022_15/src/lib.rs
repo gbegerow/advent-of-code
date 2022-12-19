@@ -92,15 +92,11 @@ fn visible(d: &SensorArea, y: i64) -> Range<i64> {
     // projection
 
     let projection_distance = d.distance - y_dist;
-    d.sensor.x - projection_distance .. d.sensor.x + projection_distance + 1
+    d.sensor.x - projection_distance .. d.sensor.x + projection_distance
 }
 
-pub fn aoc_2022_15_a(input: &str, sensor_row: i64) -> usize {
-    let data = parse(input);
-    // let bounds = get_bounds(&data);
-    // println!("{:?}", bounds);
-
-    // store minimal, just use magic erm math
+fn get_ranges_for_row(data: &Vec<SensorArea>, sensor_row: i64) -> (Vec<Coordinate>, Vec<Coordinate>, Vec<Range<i64>>) {
+    // store minimal, just use magic aka math
     let mut beacons = Vec::with_capacity(data.len());
     let mut sensors = Vec::with_capacity(data.len());
     let mut ranges = Vec::with_capacity(data.len());
@@ -111,12 +107,20 @@ pub fn aoc_2022_15_a(input: &str, sensor_row: i64) -> usize {
         if d.beacon.y == sensor_row && !beacons.contains(&d.beacon) { beacons.push(d.beacon.clone()); }
         if d.sensor.y == sensor_row && !sensors.contains(&d.sensor) { sensors.push(d.sensor.clone()); }
     }
-    
+
+    // println!("row: {} ranges:{:?}", sensor_row, &ranges);
+    let merged_ranges = merge_ranges(ranges);
+    (beacons, sensors, merged_ranges)
+}
+
+fn merge_ranges(mut ranges: Vec<Range<i64>>) -> Vec<Range<i64>> {
     // merge ranges to not count cells twice
-    ranges.sort_unstable_by_key(|r| r.start); // sort so we unidirectional
-    println!("{:?}", ranges);
+    ranges.sort_unstable_by_key(|r| r.start);
+    // sort so we unidirectional
+    // println!("{:?}", ranges);
     let mut merged_ranges = Vec::with_capacity(ranges.len());
-    let mut current = 0..-1; // empty range    
+    let mut current = 0..-1;
+    // empty range    
     for r in ranges {
         if r.is_empty() {continue;}
         if current.is_empty() {
@@ -129,22 +133,72 @@ pub fn aoc_2022_15_a(input: &str, sensor_row: i64) -> usize {
             current = r.start .. r.end;
         } 
     }
-    merged_ranges.push(current); // last range is not in list
+    merged_ranges.push(current);
+    // last range is not in list
+    //println!("{:?}", merged_ranges);
+    merged_ranges
+}
 
-    println!("{:?}", merged_ranges);
+
+pub fn aoc_2022_15_a(input: &str, sensor_row: i64) -> usize {
+    let data = parse(input);
+    // let bounds = get_bounds(&data);
+    // println!("{:?}", bounds);
+
+    let (beacons, sensors, merged_ranges) = get_ranges_for_row(&data, sensor_row);
 
     let known = 
-        merged_ranges.iter().map(|r| (r.end - r.start) as usize).sum::<usize>() // len not defined for i64
-            - sensors.len()
-            - beacons.len();
+        merged_ranges.iter().map(|r| (r.end - r.start) as usize).sum::<usize>(); // len not defined for i64
+            // - sensors.len()
+            // - beacons.len();
 
     println!("known {} beacons {} sensors {}", known, beacons.len(), sensors.len());
 
     return known
 }
 
-pub fn aoc_2022_15_b(_input: &str) -> usize {
-    0
+pub fn aoc_2022_15_b(input: &str, min: i64, max: i64) -> i64 {
+    let data = parse(input);
+
+    // find beacon outside of all sensor ranges min < x < max and min < y < max
+    // for row in min..max { 
+    //     let (_beacons, _sensors, ranges) = 
+    //             get_ranges_for_row(data, row);
+
+    //     // is there a point not inside the sensor ranges but not inside min..max   
+    //     //  (min..max - ranges).is_empty
+        
+    //     ranges.iter()
+    //         .filter(|r| r.start >= min || r.end <= max)
+    //         .map(|r| TODO )
+    // }
+ 
+    println!("{}", (min..max).into_iter()
+        .map(|row| (row, get_ranges_for_row(&data, row).2))
+        .filter(|(_row, ranges)| ranges.len() > 1)
+        .map(|(row, ranges)| format!("Multi Range Row: {}: \t{:?}", row, ranges))
+        .collect::<Vec<_>>()
+        .join("\n")
+    );
+
+    let gaps = (min..max).into_iter()
+        .map(|row| (row, get_ranges_for_row(&data, row).2))
+        .filter(|(_row, ranges)| ranges.len() > 1)
+        .map(|(row, ranges)| (row, ranges.windows(2)
+                .map(|slice| 
+                    match &slice {
+                        [a,b] => {
+                            let start = a.end.clone()+1; let end = b.start.clone(); 
+                            start..end // range between
+                        },  
+                        _ => panic!("invalid window size")
+                    }
+                    
+                 ).collect::<Vec<_>>() ))
+        .collect::<Vec<_>>();
+    println!("{:?}", gaps);
+    
+    gaps[0].0 + (gaps[0].1[0].end -1) * 4000000  // this is so unreadable :-(
 }
 
 
@@ -168,12 +222,12 @@ mod tests {
     
     #[test]
     fn aoc_2022_15_b_example() {
-        assert_eq!(super::aoc_2022_15_b(TEST_INPUT), 0);
+        assert_eq!(super::aoc_2022_15_b(TEST_INPUT, 0, 20), 56000011);
     }
 
     #[test]
     fn aoc_2022_15_b() {
-        assert_eq!(super::aoc_2022_15_b(include_str!("input.txt")), 0);
+        assert_eq!(super::aoc_2022_15_b(include_str!("input.txt"), 0, 4000000), 10908230916597);
     }
 
     // ------- Copy cat. Port of u/Metarineo python solution just to get the number. But still got the same number????
