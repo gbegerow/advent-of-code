@@ -1,9 +1,8 @@
 [package]
-name = "aoc_2022_16"
+name = "aoc_2022_17"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-petgraph = "0.6.2"
-regex = "1"
+crossterm = "0.25.0"
