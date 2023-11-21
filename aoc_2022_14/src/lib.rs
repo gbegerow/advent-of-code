@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use crossterm::{
-    cursor,
-    style::{self, Stylize},
-    terminal, QueueableCommand, Result,
-};
-use std::io::{stdout, Write};
+// use crossterm::{
+//     cursor,
+//     style::{self, Stylize},
+//     terminal, QueueableCommand
+// };
+// use std::io::{stdout, Write};
 
 
 // use itertools::Itertools;
@@ -50,36 +50,36 @@ fn parse(input: &str) -> HashMap<Coordinate, Tile>{
         ).collect()
 }
 
-fn draw_cave(map: &HashMap<Coordinate, Tile>, spawner: &Coordinate, location: Option<&Coordinate>) -> Result<()> {
-    let mut stdout = stdout();
+// fn draw_cave(map: &HashMap<Coordinate, Tile>, spawner: &Coordinate, location: Option<&Coordinate>) -> std::io::Result<()> {
+//     let mut stdout = stdout();
 
-    stdout.queue(terminal::Clear(terminal::ClearType::All))?;
-    // stdout.queue(cursor::MoveToNextLine(1))?;
-    // assume row from 460 - 540, column from 0 - 200, origin top left
-    let row = |c:&Coordinate| c.x as u16 - 460;
-    let col = |c:&Coordinate| c.y as u16 ;
+//     stdout.queue(terminal::Clear(terminal::ClearType::All))?;
+//     // stdout.queue(cursor::MoveToNextLine(1))?;
+//     // assume row from 460 - 540, column from 0 - 200, origin top left
+//     let row = |c:&Coordinate| c.x as u16 - 460;
+//     let col = |c:&Coordinate| c.y as u16 ;
 
-    for (c, t) in map {
-        stdout.queue(cursor::MoveTo(row(c), col(c)))?; 
-        match t {
-            Tile::Air => stdout.queue(style::PrintStyledContent("░".black()))?,
-            Tile::Rock => stdout.queue(style::PrintStyledContent("█".grey()))?,
-            Tile::Sand => stdout.queue(style::PrintStyledContent("o".yellow()))?,
-        };
-    }
+//     for (c, t) in map {
+//         stdout.queue(cursor::MoveTo(row(c), col(c)))?; 
+//         match t {
+//             Tile::Air => stdout.queue(style::PrintStyledContent("░".black()))?,
+//             Tile::Rock => stdout.queue(style::PrintStyledContent("█".grey()))?,
+//             Tile::Sand => stdout.queue(style::PrintStyledContent("o".yellow()))?,
+//         };
+//     }
 
-    stdout.queue(cursor::MoveTo(row(spawner), col(spawner)))?
-        .queue(style::PrintStyledContent("+".blue()))?;
+//     stdout.queue(cursor::MoveTo(row(spawner), col(spawner)))?
+//         .queue(style::PrintStyledContent("+".blue()))?;
 
-    if let Some(current) = location {    
-        stdout.queue(cursor::MoveTo(row(current), col(current)))?
-            .queue(style::PrintStyledContent("*".green()))?;
-    }
+//     if let Some(current) = location {    
+//         stdout.queue(cursor::MoveTo(row(current), col(current)))?
+//             .queue(style::PrintStyledContent("*".green()))?;
+//     }
 
-    stdout.queue(cursor::MoveToNextLine(1))?;
-    stdout.flush()?;
-    Ok(())
-}
+//     stdout.queue(cursor::MoveToNextLine(1))?;
+//     stdout.flush()?;
+//     Ok(())
+// }
 
 
 pub fn aoc_2022_14_a(input: &str) -> usize {

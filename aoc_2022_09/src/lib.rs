@@ -81,7 +81,7 @@ fn parse_moves(input: &str) -> Vec<(i32, i32)>{
     let mut moves = Vec::new();
 
     for line in input.trim().lines() {
-        for (dir, count) in line.trim().split_once(" "){
+        if let Some((dir, count)) = line.trim().split_once(" "){
             // unroll count
             for _ in 0..count.parse().expect("invalid count"){
                 match dir {

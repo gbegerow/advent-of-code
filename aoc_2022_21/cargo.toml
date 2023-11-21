@@ -1,7 +1,8 @@
 [package]
-name = "aoc_2022_14"
+name = "aoc_2022_21"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
+regex="1"

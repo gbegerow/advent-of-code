@@ -46,6 +46,9 @@ if (-not (Test-Path $folder)) {
         '^(.*)assert_eq!\(super::(part|aoc_\d+_\d+)_(.+)$' {
             '{2}assert_eq!(super::{0}_{1}' -f $folder, $Matches.3, $Matches.1
         }
+        '^(.*)(https://adventofcode.com/\$year/day/\$day)(.+)$' {
+            '{2}{0}{1}' -f "https://adventofcode.com/$year/day/$day", $Matches.3, $Matches.1
+        }
         Default { $_ }
     } 
     $lib | Set-Content ".\src\lib.rs" -Force
