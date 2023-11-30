@@ -27,6 +27,7 @@
       <sourceFolder url="file://$MODULE_DIR$/aoc_2022_21/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/aoc_2022_23/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/aoc_2022_24/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2021_13/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

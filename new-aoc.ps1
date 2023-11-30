@@ -43,12 +43,15 @@ if (-not (Test-Path $folder)) {
         '^(.*)fn (part|aoc_\d+_\d+)_(.+)$' { 
             '{2}fn {0}_{1}' -f $folder, $Matches.3, $Matches.1
         }
+        
         '^(.*)assert_eq!\(super::(part|aoc_\d+_\d+)_(.+)$' {
             '{2}assert_eq!(super::{0}_{1}' -f $folder, $Matches.3, $Matches.1
         }
+
         '^(.*)(https://adventofcode.com/\$year/day/\$day)(.+)$' {
-            '{2}{0}{1}' -f "https://adventofcode.com/$year/day/$day", $Matches.3, $Matches.1
+            '{3}https://adventofcode.com/{0}/day/{1}{2}' -f $year, $day, $Matches.3, $Matches.1
         }
+     
         Default { $_ }
     } 
     $lib | Set-Content ".\src\lib.rs" -Force

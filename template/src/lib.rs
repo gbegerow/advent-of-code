@@ -1,5 +1,8 @@
 // #[allow(dead_code)]
-// Find the task under https://adventofcode.com/$year/day/$day
+/* Find the task under https://adventofcode.com/$year/day/$day
+    Solution idea:
+
+*/
 
 pub fn part_a(input: &str) -> usize {
     // for line in input.trim().lines() {
@@ -37,7 +40,7 @@ mod tests {
     }
 
     
-    const INPUT: &str  = include_str!("input.txt");
+    const INPUT: &str = include_str!("input.txt");
 
     const TEST_INPUT: &str = "";
 }
