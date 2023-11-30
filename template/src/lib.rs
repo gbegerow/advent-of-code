@@ -1,5 +1,5 @@
 // #[allow(dead_code)]
-/* Find the task under https://adventofcode.com/$year/day/$day
+/* Find the task under https://adventofcode.com/9999/day/99
     Solution idea:
 
 */
