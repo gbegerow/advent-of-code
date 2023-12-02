@@ -15,8 +15,7 @@ pub fn aoc_2023_02_a(input: &str) -> i32 {
             .unwrap();
 
         if rolls
-            .split(";")
-            .flat_map(|r| r.split(","))
+            .split([';', ',']) // you can split over multiple separators
             .filter_map(|d| d.trim().split_once(" "))
             .map(|(n_str, c)| (n_str.trim().parse::<i32>().unwrap(), c))
             .all(|(n, color)| match color {
