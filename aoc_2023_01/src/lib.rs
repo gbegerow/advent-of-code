@@ -1,5 +1,5 @@
 // #[allow(dead_code)]
-/* Find the task under https://adventofcode.com/2023/day/19
+/* Find the task under https://adventofcode.com/2023/day/01
     Solution idea:
 
 */
