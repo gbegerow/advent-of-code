@@ -33,6 +33,9 @@ members = [
 "aoc_2021_16",
 "aoc_2023_02",
 "aoc_2020_01",
+"aoc_2020_02",
+"aoc_2023_03",
+"aoc_2023_04",
 ]
 
 [workspace.dependencies]

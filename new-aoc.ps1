@@ -47,15 +47,14 @@ if (-not (Test-Path $folder)) {
         '^(.*)assert_eq!\(super::(part|aoc_\d+_\d+)_(.+)$' {
             '{2}assert_eq!(super::{0}_{1}' -f $folder, $Matches.3, $Matches.1
         }
-
-        '(https://adventofcode.com/\d+/day/\d+)' {
-            'https://adventofcode.com/{0}/day/{1}' -f $year, $day
+        
+        '^(.*)(https://adventofcode.com/\d+/day/\d+)(.*)$' {
+            '{2}https://adventofcode.com/{0}/day/{1:00}{3}' -f $year, $day, $Matches.1, $Matches.3
         }
      
         Default { $_ }
     } 
     $lib | Set-Content ".\src\lib.rs" -Force
-
 
     Pop-Location
 

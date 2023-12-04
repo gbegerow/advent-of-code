@@ -40,14 +40,13 @@ pub fn aoc_2023_02_b(input: &str) -> i32 {
         let (_game, rolls) = line.split_once(":").unwrap();
 
         let max = rolls
-            .split(";")
-            .flat_map(|r| r.split(","))
+            .split([';', ','])
             .filter_map(|d| d.trim().split_once(" "))
             .map(|(n_str, c)| (n_str.trim().parse::<i32>().unwrap(), c))
-            .fold((0,0,0), |max, (n, color)| match color { 
+            .fold((0, 0, 0), |max, (n, color)| match color {
                 "red" if n > max.0 => (n, max.1, max.2),
                 "green" if n > max.1 => (max.0, n, max.2),
-                "blue" if n > max.2 =>  (max.0, max.1, n),
+                "blue" if n > max.2 => (max.0, max.1, n),
                 _ => max,
             });
         power += max.0 * max.1 * max.2;
