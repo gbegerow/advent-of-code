@@ -16,7 +16,7 @@ enum ScanRange {
     End,
 }
 
-fn scan_for_symbols(field: &Vec<Vec<char>>, x: usize, y: usize, range: ScanRange) -> bool {
+fn scan_for_symbols(field: &Vec<Vec<char>>, x: usize, y: usize, range: ScanRange) -> Vec<(usize, usize, char)> {
     let (width, height) = (field[0].len(), field.len());
     let bounded_range = if x == 0 || x == width -1 { ScanRange::Middle } else {range};
     // 0 - 1 is invalid in usize    
@@ -38,12 +38,12 @@ fn scan_for_symbols(field: &Vec<Vec<char>>, x: usize, y: usize, range: ScanRange
     if bounded_range == ScanRange::End                   { neighbours.push((x,     y    ));}
     
     // we now know for sure neighbours contains only valid indexes
-    let symbols =neighbours
+    // part b: if symbol is star memorize at which position the number has seen it
+    neighbours
         .iter()
-        .filter(|(nx, ny)| field[*ny][*nx] != '.' && !field[*ny][*nx].is_numeric())
-        .collect::<Vec<_>>();
-
-    symbols.len() > 0    
+        .map(|(nx, ny)| (nx, ny,  field[*ny][*nx].clone()))
+        .filter(|&(_, _, c)| c != '.' && !c.is_numeric())
+        .collect::<Vec<_>>()   
 }
 
 fn add_if_adjacent(symbol_adjacent: bool, num: u32) -> u32{
@@ -82,7 +82,7 @@ pub fn aoc_2023_03_a(input: &str) -> u32 {
             match state {
                 State::Outside if c.is_numeric() => {
                     // println!("Start number");
-                    let symbol_adjacent = scan_for_symbols(&field, x, y, ScanRange::Start);
+                    let symbol_adjacent = scan_for_symbols(&field, x, y, ScanRange::Start).len() > 0;
                     let num = c.to_digit(10).unwrap();
                     next_state = State::Inside { symbol_adjacent, num };
                 },
@@ -92,7 +92,7 @@ pub fn aoc_2023_03_a(input: &str) -> u32 {
                 State::Inside { symbol_adjacent, num}  if c.is_numeric() => {
                     // println!("Inside number");
                     let symbol_adjacent =
-                        symbol_adjacent || scan_for_symbols(&field, x, y, ScanRange::Middle);
+                        symbol_adjacent || scan_for_symbols(&field, x, y, ScanRange::Middle).len() > 0;
                     let num = num * 10 + c.to_digit(10).unwrap();
                     next_state = State::Inside { symbol_adjacent, num };
                 },
@@ -100,7 +100,7 @@ pub fn aoc_2023_03_a(input: &str) -> u32 {
                 State::Inside { symbol_adjacent, num} => {
                     // println!("End of number");
                     let symbol_adjacent = symbol_adjacent 
-                            || scan_for_symbols(&field, x, y, ScanRange::End);
+                            || scan_for_symbols(&field, x, y, ScanRange::End).len() > 0;
                     sum_of_parts += add_if_adjacent(symbol_adjacent, num);
                     next_state = State::Outside;
                 },
@@ -125,6 +125,9 @@ pub fn aoc_2023_03_a(input: &str) -> u32 {
 
 
 pub fn aoc_2023_03_b(_input: &str) -> usize {
+    // idea: collect symbols with positon in scan
+    // in end of number collect every star in a HashMap<(x,y), Vec<number>>
+    // at return get all entries where exactly two number has been memorized
     0
 }
 
@@ -137,7 +140,7 @@ mod tests {
 
     #[test]
     fn aoc_2023_03_a() {
-        assert_eq!(super::aoc_2023_03_a(INPUT), 0);
+        assert_eq!(super::aoc_2023_03_a(INPUT), 544433);
     }
 
     #[test]

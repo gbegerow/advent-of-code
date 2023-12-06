@@ -1,0 +1,9 @@
+[package]
+name = "aoc_2023_05"
+version = "0.1.0"
+authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+itertools = {workspace = true}
+rstest = {workspace=true}
