@@ -3,6 +3,9 @@
     Solution idea:
 Chain of HashMaps - works with test input explodes with input
 Plan B: instead of Maps, just store ranges and do a lookup function
+
+Optimization: we are only interested in minimum location, do not store. 
+maybe do reverse lookups starting from lowest location, take first where a seed is found
 */
 
 
@@ -109,7 +112,6 @@ fn parse(input: &str, expand_seeds: bool) -> (Vec<u64>, Vec<NamedMap>) {
 fn lookup_locations(input: &str, expand_seeds: bool) -> u64 {
     let (seeds, maps) = parse(input, expand_seeds);
 
-    //TODO we are only interested in minimum, do not store. maybe do reverse lookups
     let locations: Vec<_> = seeds
         .iter()
         .map(|&seed| {

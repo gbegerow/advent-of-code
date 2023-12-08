@@ -19,7 +19,7 @@
  1
  0 *      *
 
-Find lower bound l where t(n-t) > r then n-2l+1 (for odd values at least) winning values exist
+Find lower bound L where t(n-t) > r then n-2L+1 (for odd values at least) winning values exist
 
 */
 
