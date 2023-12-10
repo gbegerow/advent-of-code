@@ -40,12 +40,15 @@ members = [
 "aoc_2023_06",
 "aoc_2023_07",
 "aoc_2023_08",
+"aoc_2023_09",
+"aoc_2023_10",
 ]
 
 [workspace.dependencies]
 itertools = "0.12"
 rstest="0.18"
-nom = "7.1.3"
+nom = "7.1"
+num="0.4"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
