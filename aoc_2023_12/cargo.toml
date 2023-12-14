@@ -1,8 +1,7 @@
 [package]
-name = "aoc_2023_10"
+name = "aoc_2023_12"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-rstest={workspace=true}

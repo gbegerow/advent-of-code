@@ -1,9 +1,9 @@
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2023/day/09
     Solution idea:
-
+    Only last values of difference is needed
 */
-fn differenc(org : Vec<i64>) -> Vec<i64> {
+fn difference(org : Vec<i64>) -> Vec<i64> {
     org.windows(2).map(|slice| slice[1]-slice[0]).collect()
 }
 

@@ -8,12 +8,10 @@
     Replace instructions by "digraph {", append "}"
     node labels off with  node[label=""];
     Replace =,(,) with ->, {, }
-    Replace "A ->" with "A [style=filled, fillcolor=green ] ->"
-    Replace "Z ->" with "Z [style=filled, fillcolor=red ] ->"
+    for every node ending A add a line "..A [style=filled, fillcolor=green ]"
+    for every node ending Z add a line "..Z [style=filled, fillcolor=red ]"
 
-    dot -Tsvg -O input.dot
-    rendering will take time!
-    for faster circular graph use -Kcirco
+    dot -Tsvg -O -Kneato input.dot
 
     6 disjunct circles, start is not on circle, only one endpoint on circle. Its synchronized gears again.
     Lowest common multiple of all circle lengths (and length of instructions?).
