@@ -21,7 +21,7 @@
         if new result is higher than max remember new max
         remember result for origin?
     Tradoff much memory for speed up
-    Unoptimized and without additional algorithmic optimization: 60ms...
+    Unoptimized and without additional algorithmic optimization: 60ms for part 2...
 
     Start with visualization with (features before package)
     cargo test --features viz --package aoc_2023_16 --lib  -- tests::aoc_2023_16_a::case_2 --exact --nocapture

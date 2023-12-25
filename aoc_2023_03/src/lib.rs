@@ -120,14 +120,14 @@ pub fn calc(input: &str) -> (u32, u32){
 
                 State::Inside { mut symbols_seen, num } if c.is_numeric() => {
                     // println!("Inside number");
-                   symbols_seen.extend(scan_for_symbols(&field, x, y, ScanRange::Start).iter());
+                   symbols_seen.extend(scan_for_symbols(&field, x, y, ScanRange::Middle).iter());
                     let num = num * 10 + c.to_digit(10).unwrap();
                     next_state = State::Inside { symbols_seen, num };
                 }
 
                 State::Inside { mut symbols_seen, num } => {
                     // println!("End of number");
-                    symbols_seen.extend(scan_for_symbols(&field, x, y, ScanRange::Start).iter());
+                    symbols_seen.extend(scan_for_symbols(&field, x, y, ScanRange::End).iter());
 
                     //part a
                     sum_of_parts += add_if_adjacent(symbols_seen.len() > 0, num);
@@ -191,6 +191,8 @@ pub fn aoc_2023_03_b(input: &str) -> u32 {
 
 #[cfg(test)]
 mod tests {
+    use rstest::rstest;
+
     #[test]
     fn aoc_2023_03_a_example() {
         assert_eq!(super::aoc_2023_03_a(TEST_INPUT), 4361);
@@ -211,14 +213,16 @@ mod tests {
         assert_eq!(super::aoc_2023_03_b(INPUT), 0);
     }
 
-    #[test]
-    fn field_correctly_parsed() {
+    #[rstest]
+    #[case(0, 0)]
+    #[case(0, 1)]
+    #[case(0, 2)]
+    #[case(0, 3)]
+    fn field_correctly_parsed(#[case] row: usize, #[case] col: usize) {
         let field = super::parse(TEST_INPUT);
-        assert!(field[0][0].is_numeric());
-        assert!(field[0][1].is_numeric());
-        assert!(field[0][2].is_numeric());
-        assert!(!field[0][3].is_numeric());
+        assert!(field[row][col].is_numeric());
     }
+
 
     const INPUT: &str = include_str!("input.txt");
 

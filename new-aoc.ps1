@@ -29,6 +29,10 @@ if (-not (Test-Path $folder)) {
     $uri = "https://adventofcode.com/$year/day/$day/input"
     curl $uri --cookie "session=$env:aoc_session" -o "src/input.txt" -A "gbegerow@gmail.com via curl"
 
+    if ((gc "src/input.txt") -eq "Puzzle inputs differ by user.  Please log in to get your puzzle input." ) {
+        "Renew session code"
+    }
+
     # modify cargo.toml
     $toml = switch -Regex -File ".\cargo.toml" {
         '^\s*name\s*=\s*' { 

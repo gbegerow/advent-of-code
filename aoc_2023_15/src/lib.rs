@@ -7,13 +7,13 @@ use std::{str::FromStr, string::ParseError};
 */
 use regex::Regex;
 
-enum Op {
-    Assign(&str, u32),
-    Remove(&str),
+enum Op<'a> {
+    Assign(&'a str, u32),
+    Remove(&'a str),
 }
 
-const OP_RX: Regex = r"(\w+)((\=\d+)|\-)";
-impl FromStr for Op {
+const OP_RX: Regex = Regex::new( r"(\w+)((\=\d+)|\-)");
+impl FromStr for Op<'a> {
     type Err=ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
