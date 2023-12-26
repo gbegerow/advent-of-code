@@ -164,7 +164,7 @@ pub fn calc(input: &str) -> (u32, u32){
         // println!("sum: {}", sum_of_parts);
     }
 
-    println!("{:?}", symbols);
+    // println!("{:?}", symbols);
     let gears = symbols
         .values()
         .filter(|&v| v.len() == 2)
