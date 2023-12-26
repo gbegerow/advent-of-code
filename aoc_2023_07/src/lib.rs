@@ -14,8 +14,9 @@
     Part b: If there is a joker, the joker can be used rank up the hand.
 */
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-struct Card {
+struct Card { 
     rank: usize, // A has a rank higher than all other labels,
+    // label for debugging, card could just be rank
     label: char,
 }
 
@@ -50,7 +51,6 @@ struct Hand {
     cards: [Card; 5],
     hand_type: HandType,
     bid: usize,
-    joker: bool,
 }
 
 use HandType::*;
@@ -72,7 +72,6 @@ impl Hand {
             cards,
             hand_type,
             bid,
-            joker,
         }
     }
 
@@ -113,7 +112,7 @@ impl Hand {
 
         if joker {
             let joker_count = counts[0];
-            // calculate hand type += joker_count except for full house
+            // calculate hand type += joker_count except for full house and five of a kind
             match (joker_count, hand_type) {
                 (1, HighCard) => hand_type = OnePair,
                 (2, HighCard) => hand_type = ThreeOfAKind,
@@ -137,6 +136,7 @@ impl Hand {
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        // rely on ordering of enum and defaut ordering everywhere else
         (self.hand_type, self.cards).partial_cmp(&(other.hand_type, other.cards))
     }
 }
