@@ -3,6 +3,8 @@
     Solution idea:
 
 */
+use std::collections::BTreeSet;
+
 // vizualization stuff
 #[cfg(feature = "viz")]
 use crossterm::{
@@ -12,11 +14,13 @@ use crossterm::{
 };
 #[cfg(feature = "viz")]
 use ratatui::{prelude::*, widgets::*};
-use std::collections::BTreeSet;
 #[cfg(feature = "viz")]
-use std::io::{self, Stdout};
-#[cfg(feature = "viz")]
-use std::collections::BTreeMap;
+use std::{
+    io::{self, Stdout},
+    collections::BTreeMap
+};
+
+
 
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -27,8 +31,8 @@ enum Direction {
     West,
 }
 
-    /// in which direction leaves the pipe if we enter from last_direction
-    fn next_at(pipe: &char, last_direction: &Direction) -> Option<Direction> {
+/// in which direction leaves the pipe if we enter from last_direction
+fn next_at(pipe: &char, last_direction: &Direction) -> Option<Direction> {
     match (pipe, last_direction) {
         ('-', Direction::West) => Some(Direction::West),
         ('-', Direction::East) => Some(Direction::East),
@@ -124,20 +128,41 @@ fn parse(input: &str) -> (Vec<Vec<char>>, usize, usize) {
 
 fn track_loop(input: &str) -> (usize, BTreeSet<(usize, usize)>,  Vec<Vec<char>>, usize, usize){
     let (grid, start_row, start_col) = parse(input);
+    
     let mut pipes = scan(&grid, start_row, start_col)
         .iter()
         // do step from start outside of loop to simplify end condition
         .map(|d| walk_from(&grid, start_row, start_col, *d))
         .collect::<Vec<_>>();
     let mut counter = 1;
-    let mut loop_tiles = BTreeSet::from([(start_row, start_col)]);
+    // track all tiles we have been to
+    let mut loop_tiles = BTreeSet::from([
+        (start_row, start_col),
+        (pipes[0].0, pipes[0].1),
+        (pipes[1].0, pipes[1].1),
+        ]);
     
+    #[cfg(feature = "viz")]
+    let mut terminal = setup_viz().expect("setup viz");
+    #[cfg(feature = "viz")]
+    const SINGLE_STEP: bool = true;
+
     while (
         // longest path is found if both ways reach the same tile after start
         pipes[0].0 != pipes[1].0 
             || pipes[0].1 != pipes[1].1)    
         // safe guard against cycling    
         && counter < grid.len() * grid[0].len() {
+
+        #[cfg(feature = "viz")]
+        draw(&mut terminal, &grid, pipes[0].0, pipes[0].1, &loop_tiles,
+            &BTreeMap::from([
+                ("counter", &counter.to_string()),
+                ("Path 1", &format!("{} {:?}", grid[pipes[0].0][pipes[0].1], pipes[0].2)),
+                ("Path 2", &format!("{} {:?}", grid[pipes[1].0][pipes[1].1], pipes[1].2)),
+            ]),
+             SINGLE_STEP).expect("draw");
+
         // println!("pipes: {:?} {} {} count: {}", pipes, grid[pipes[0].0][pipes[0].1], grid[pipes[1].0][pipes[1].1], counter );
         pipes = pipes
             .iter()
@@ -147,6 +172,17 @@ fn track_loop(input: &str) -> (usize, BTreeSet<(usize, usize)>,  Vec<Vec<char>>,
         pipes.iter().for_each(|p| { loop_tiles.insert((p.0, p.1)); });
         counter += 1;
     }
+
+    #[cfg(feature = "viz")]
+    {
+        draw(&mut terminal, &grid, pipes[0].0, pipes[0].1, &loop_tiles,
+            &BTreeMap::from([
+                ("counter", &counter.to_string()),
+            ]),
+             SINGLE_STEP).expect("draw");
+        shutdown_viz().expect("shutdown viz");
+    }
+    
     (counter, loop_tiles, grid, start_row, start_col)
 }
 
@@ -173,10 +209,12 @@ fn draw<B: Backend>(
     grid: &Vec<Vec<char>>,
     current_row: usize,
     current_col: usize,
-    values: BTreeMap<_,_>,
+    track: &BTreeSet<(usize, usize)>,
+    values: &BTreeMap<&str,&String>,
     single_step: bool,
 ) -> io::Result<()> {
     // format grid
+
     let text = Text::from(
         grid.iter()
             .enumerate()
@@ -185,7 +223,15 @@ fn draw<B: Backend>(
                     row.iter()
                         .enumerate()
                         .map(|(col_no, field)| {
-                            let style = Style::default();
+                            let mut style =  if track.contains(&(row_no, col_no)) {
+                                Style::default().fg(Color::Green)
+                            } else {
+                                Style::default()
+                            };
+                            if row_no == current_row && col_no == current_col {
+                                style = style.bg(Color::Red)
+                            } 
+
                             let c = field;
                             Span::styled(c.to_string(), style)
                         })
@@ -210,8 +256,8 @@ fn draw<B: Backend>(
         vec![
             Line::from(format!("{}: ", k)),
             Line::from(Span::styled(
-                format!("{v}"),
-                Style::default().bg(Color::Green),
+                v.to_string(),
+                Style::default().fg(Color::Yellow),
             )),
         ]
     }).collect::<Vec<_>>();
@@ -224,7 +270,7 @@ fn draw<B: Backend>(
         // f.render_widget(p, f.size());
 
         let chunks = Layout::default()
-            .direction(Direction::Horizontal)
+            .direction(ratatui::layout::Direction::Horizontal)
             .constraints([Constraint::Percentage(20), Constraint::Percentage(80)].as_ref())
             .split(f.size());
 
@@ -252,12 +298,78 @@ pub fn aoc_2023_10_a(input: &str) -> usize {
     counter    
 }
 
+
 #[allow(unused_variables)]
 pub fn aoc_2023_10_b(input: &str) -> usize {
-    let (counter, track_loop, grid, start_row, start_col) = track_loop(input);
+    let (_, track_loop, grid, start_row, start_col) = track_loop(input);
+
+    let mut counter = 0;
+   // scan every row,
+    // what does it mean to be inside? 
+    // Even / odd rule, but what counts as crossing the pipe?
+    // runs like .F----7. or .L--J. has no inside tiles after last corner (U turn) (sqeazing around the pipe)
+    // runs like .F--J. or .L--7. has inside tiles after last corner  (S turn) (crossing the pipe)
+    // | alway crosses the pipe
+    // could we consider S always a crossing corner? No. (s. Testinput1)
+     for (row_no, row) in grid.iter().enumerate()  {
+        let mut is_inside = false;
+        let mut enter_at ='.';
+        for (col_no, f) in row.iter().enumerate()  {
+            let mut field = f.clone();
+            // println!("[{} {}]: {} inside? {}", row_no, col_no, field, is_inside);
+            if track_loop.contains(&(row_no, col_no)) {
+                if field == 'S' {
+                    field = get_tile_for_start(&grid, row_no, col_no);
+                } 
+
+                match field {
+                    // we scan from left to right, so we can only enter from the left
+                    'F' | 'L' => {
+                        enter_at = field;
+                    },
+                    'J' if ['F'].contains(&enter_at) => {
+                        is_inside = !is_inside;
+                        enter_at='.';
+                    },
+                    '7' if ['L'].contains(&enter_at) => {
+                        is_inside = !is_inside;
+                        enter_at='.';
+                    },
+                    '|' => {
+                        // crossing the pipe
+                        is_inside = !is_inside;
+                    },
+                    _ => {
+                        // nothing to do
+                    }
+                    
+                }
+
+            } else if is_inside {
+                // we are inside
+                println!("[{} {}]: {} inside? {}", row_no, col_no, field, is_inside);
+                
+                counter += 1;
+            }
+        }
+    }
 
     // find inside
     counter    
+}
+
+fn get_tile_for_start(grid: &Vec<Vec<char>>, row: usize, col: usize) -> char {
+    let dirs = scan(&grid, row, col);
+    match &dirs[..2] {
+        [Direction::East, Direction::South] => 'F',
+        [Direction::North, Direction::East] => 'L',
+        [Direction::South, Direction::West] => '7',
+        [Direction::North, Direction::West] => 'J',
+        [Direction::East, Direction::West] => '-',
+        [Direction::North, Direction::South] => '|',
+        _ => unreachable!(),
+        
+    }
 }
 
 #[cfg(test)]
@@ -275,14 +387,17 @@ mod tests {
         assert_eq!(super::aoc_2023_10_a(INPUT), 6815);
     }
 
-    #[test]
-    fn aoc_2023_10_b_example() {
-        assert_eq!(super::aoc_2023_10_b(TEST_INPUT), 0);
+    #[rstest]
+    #[case(TEST_INPUT, 1)]
+    #[case(TEST_INPUT2, 4)]
+    #[case(TEST_INPUT3, 8)]
+    fn aoc_2023_10_b_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2023_10_b(input), expected);
     }
 
     #[test]
     fn aoc_2023_10_b() {
-        assert_eq!(super::aoc_2023_10_b(INPUT), 0);
+        assert_eq!(super::aoc_2023_10_b(INPUT), 269);
     }
 
     #[test]
@@ -340,6 +455,17 @@ mod tests {
         assert_eq!( 
             super::walk_from(&grid, from_row, from_col, go), 
             (row, col, dir));
+    }
+
+    #[rstest]
+    #[case(TEST_INPUT, 'F')]
+    #[case(TEST_INPUT2, 'F')]
+    #[case(TEST_INPUT3, 'F')]
+    #[case(INPUT, '7')]
+    fn tile_for_start_should(#[case] input: &str, #[case] expected: char) {
+        let (grid, start_row, start_col) = super::parse(input);
+
+        assert_eq!(super::get_tile_for_start(&grid, start_row, start_col), expected);
     }
 
     const INPUT: &str = include_str!("input.txt");
