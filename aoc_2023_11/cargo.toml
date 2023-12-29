@@ -6,4 +6,4 @@ edition = "2021"
 
 [dependencies]
 itertools = { workspace = true }
-glam = { workspace = true }
+rstest = { workspace = true }
