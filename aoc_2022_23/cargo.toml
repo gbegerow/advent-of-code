@@ -1,9 +1,0 @@
-[package]
-name = "aoc_2022_23"
-version = "0.1.0"
-authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
-edition = "2021"
-
-[dependencies]
-lazy_static="1.4.0"
-minifb = "0.23.0"
