@@ -1,0 +1,72 @@
+[workspace]
+resolver = "2" # Important! wgpu/Bevy needs this!
+members = [
+"aoc_2022_01",
+"aoc_2022_02",
+"aoc_2022_03",
+"aoc_2022_04",
+"aoc_2022_05",
+"aoc_2022_06",
+"aoc_2022_07",
+"aoc_2022_08",
+"aoc_2022_09",
+"aoc_2022_10",
+"aoc_2021_01",
+"aoc_2021_12",
+"aoc_2022_11",
+"aoc_2022_12",
+"aoc_2022_13",
+"aoc_2022_14",
+"aoc_2022_15",
+"aoc_2022_16",
+"aoc_2022_17",
+"aoc_2022_18",
+"aoc_2022_20",
+"aoc_2021_19",
+"aoc_2022_21",
+"aoc_2022_23",
+"aoc_2022_24",
+"aoc_2021_13",
+"aoc_2021_14",
+"aoc_2021_15",
+"aoc_2023_01",
+"aoc_2021_16",
+"aoc_2023_02",
+"aoc_2020_01",
+"aoc_2020_02",
+"aoc_2023_03",
+"aoc_2023_04",
+"aoc_2023_05",
+"aoc_2023_06",
+"aoc_2023_07",
+"aoc_2023_08",
+"aoc_2023_09",
+"aoc_2023_10",
+"aoc_2023_11",
+"aoc_2023_12",
+"aoc_2023_13",
+"aoc_2023_14",
+"aoc_2023_15",
+"aoc_2023_16",
+"aoc_2023_21",
+]
+
+[workspace.dependencies]
+itertools = "0.12"
+rstest="0.18"
+nom = "7.1"
+num="0.4"
+glam="0.24"
+regex="1"
+crossterm="0.27"
+ratatui ="0.25"
+
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+

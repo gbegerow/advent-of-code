@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="EMPTY_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2021_01/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2021_12/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2021_19/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_01/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_02/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_03/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_04/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_05/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_06/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_07/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_08/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_09/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_10/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_11/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_12/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_13/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_14/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_15/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_16/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_17/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_18/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_20/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_21/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_23/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2022_24/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aoc_2021_13/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
