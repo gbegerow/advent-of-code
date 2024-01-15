@@ -5,4 +5,8 @@ authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-nom = [workspace=true]
+# nom = {workspace=true}
+memoize = {workspace=true}
+rstest = {workspace=true}
+itertools = {workspace=true}
+
