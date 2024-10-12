@@ -12,15 +12,7 @@ if (-not (Test-Path $folder)) {
     # copy template folder
     Copy-Item -Recurse -path $template -dest $folder
 
-    # add folder to rust workspace
-    $workspace = switch -Regex -File $workspaceFile {
-        '^\s*]$' { 
-            '"{0}",' -f $folder
-            $_
-        }
-        Default { $_ }
-    } 
-    $workspace | Set-Content $workspaceFile -Force
+    # changed to wildcard members in workspace file, so no need to change it
 
     Push-Location $folder
 
@@ -29,7 +21,7 @@ if (-not (Test-Path $folder)) {
     $uri = "https://adventofcode.com/$year/day/$day/input"
     curl $uri --cookie "session=$env:aoc_session" -o "src/input.txt" -A "gbegerow@gmail.com via curl"
 
-    if ((gc "src/input.txt") -eq "Puzzle inputs differ by user.  Please log in to get your puzzle input." ) {
+    if ((Get-Content "src/input.txt") -eq "Puzzle inputs differ by user.  Please log in to get your puzzle input." ) {
         "Renew session code"
     }
 
