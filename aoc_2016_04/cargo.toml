@@ -1,9 +1,9 @@
 [package]
-name = "aoc_2022_13"
+name = "aoc_2016_04"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-nom = "7"
-regex = "1"
+rstest = { workspace = true }
+regex = { workspace = true }
