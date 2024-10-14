@@ -48,7 +48,6 @@ impl Room {
 fn rotate(c: char, rotate: u32) -> char {
     assert!(c.is_ascii_lowercase());
 
-    // let rotate = rotate % 26;
     let ord = c as u8 - b'a';
     let rotated = (ord as u32 + rotate) % 26;
 

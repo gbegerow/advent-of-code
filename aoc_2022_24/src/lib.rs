@@ -118,7 +118,7 @@ fn occupies(p: i32, start: i32, t: i32, width: i32) -> bool {
 }
 
 
-fn parse_storms(input: &str) -> StormsMap {
+_storms(input: &str) -> StormsMap {
     let mut width = 0;
     let mut height = 0;
     let mut vertical_storms = Vec::with_capacity(100);
