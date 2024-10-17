@@ -7,9 +7,3 @@ edition = "2021"
 [dependencies]
 rstest = { workspace = true }
 regex = { workspace = true }
-crossterm = { workspace = true, optional = true }
-ratatui = { workspace = true, optional = true }
-
-[features]
-# default=["viz"]
-viz = ["dep:crossterm", "dep:ratatui"]

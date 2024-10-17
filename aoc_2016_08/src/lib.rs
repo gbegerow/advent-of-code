@@ -5,22 +5,6 @@
 */
 use regex::Regex;
 
-// vizualization stuff
-#[cfg(feature = "viz")]
-use crossterm::{
-    event::{read, Event, KeyCode},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
-#[cfg(feature = "viz")]
-use ratatui::{prelude::*, widgets::*};
-use std::fmt::Display;
-#[cfg(feature = "viz")]
-use std::{
-    collections::BTreeMap,
-    io::{self, Stdout},
-};
-
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 enum RotateDir {
     #[default]
