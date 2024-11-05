@@ -2,7 +2,6 @@
 
 use std::{cmp::Ordering, collections::BTreeSet};
 
-
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 struct Voxel {
     x: i16,
@@ -50,7 +49,6 @@ fn parse_voxel(input: &str) -> BTreeSet<Voxel> {
         .collect()
 }
 
-
 fn count_sides(input: &str, max_dist: u16) -> usize {
     let neighbours = get_neigbours();
 
@@ -73,11 +71,11 @@ fn count_sides(input: &str, max_dist: u16) -> usize {
                     coord.z + (delta[2] * dist as i16),
                 );
 
-                if outside.contains(&n) { 
-                    found = false; // this is outside for sure 
+                if outside.contains(&n) {
+                    found = false; // this is outside for sure
                     break;
-                }                
-                
+                }
+
                 if map.contains(&n) {
                     // if dist > 1 {
                     //     println!("From {:?} Found {:?} Distance {}", coord, n, dist);
@@ -88,13 +86,13 @@ fn count_sides(input: &str, max_dist: u16) -> usize {
                 }
             }
 
-            if !found { 
+            if !found {
                 // open surface, add 1 side
                 sides += 1;
             }
         }
     }
-    sides as usize 
+    sides as usize
 }
 
 fn get_neigbours() -> [[i16; 3]; 6] {
@@ -112,19 +110,24 @@ fn get_neigbours() -> [[i16; 3]; 6] {
 fn fill_outside(map: &BTreeSet<Voxel>) -> BTreeSet<Voxel> {
     let mut outside = BTreeSet::new();
     let (min, max) = find_bounds(map);
-    
-    let mut stack = vec![max.clone()]; // this can reach for sure outside
+
+    let mut stack = vec![max.clone()]; // this can reach for sure the outside
 
     let neighbours = get_neigbours();
     while let Some(coord) = stack.pop() {
-        if outside.contains(&coord) || map.contains(&coord) {continue;} // ignore known outside && inside
-        
+        if outside.contains(&coord) || map.contains(&coord) {
+            continue;
+        } // ignore known outside && inside
+
         for delta in neighbours {
-            let (x,y,z) = (coord.x + delta[0], coord.y + delta[1], coord.z + delta[2]);
-            if x < min.x - 2 || x > max.x + 2 ||
-                y < min.y - 2 || y > max.y + 2 ||
-                z < min.z - 2 || z > max.z + 2 
-                 {
+            let (x, y, z) = (coord.x + delta[0], coord.y + delta[1], coord.z + delta[2]);
+            if x < min.x - 2
+                || x > max.x + 2
+                || y < min.y - 2
+                || y > max.y + 2
+                || z < min.z - 2
+                || z > max.z + 2
+            {
                 continue; // ignore cells to far outside but leave enough space to crawl around
             }
             let n = Voxel::new(
@@ -132,7 +135,7 @@ fn fill_outside(map: &BTreeSet<Voxel>) -> BTreeSet<Voxel> {
                 coord.y + delta[1] as i16,
                 coord.z + delta[2] as i16,
             );
-            
+
             stack.push(n);
         }
         outside.insert(coord);
@@ -141,7 +144,7 @@ fn fill_outside(map: &BTreeSet<Voxel>) -> BTreeSet<Voxel> {
     // println!("Outside: {:?}", outside);
     // let coord = Voxel::new(2,2,5);
     // println!("Outside {} Inside {}", outside.contains(&coord), map.contains(&coord));
-    
+
     outside
 }
 
@@ -150,13 +153,25 @@ fn find_bounds(map: &BTreeSet<Voxel>) -> (Voxel, Voxel) {
     // if there is no voxel panic
     let mut max = min.clone();
     for v in map {
-        if min.x > v.x { min = Voxel::new(v.x, min.y, min.z);}
-        if min.y > v.y { min = Voxel::new(min.x, v.y, min.z);}
-        if min.z > v.z { min = Voxel::new(min.x, min.y, v.z);}
+        if min.x > v.x {
+            min = Voxel::new(v.x, min.y, min.z);
+        }
+        if min.y > v.y {
+            min = Voxel::new(min.x, v.y, min.z);
+        }
+        if min.z > v.z {
+            min = Voxel::new(min.x, min.y, v.z);
+        }
 
-        if max.x < v.x { max = Voxel::new(v.x, max.y, max.z);}
-        if max.y < v.y { max = Voxel::new(max.x, v.y, max.z);}
-        if max.z < v.z { max = Voxel::new(max.x, max.y, v.z);}
+        if max.x < v.x {
+            max = Voxel::new(v.x, max.y, max.z);
+        }
+        if max.y < v.y {
+            max = Voxel::new(max.x, v.y, max.z);
+        }
+        if max.z < v.z {
+            max = Voxel::new(max.x, max.y, v.z);
+        }
     }
 
     println!("Min: {:?} Max: {:?}", min, max);
@@ -193,7 +208,7 @@ mod tests {
 
     #[test]
     fn aoc_2022_18_b() {
-        assert_eq!(super::aoc_2022_18_b(include_str!("input.txt")), 2576); 
+        assert_eq!(super::aoc_2022_18_b(include_str!("input.txt")), 2576);
     }
 
     #[test]
