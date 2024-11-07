@@ -55,7 +55,11 @@ fn parse(input: &str) -> (&str, HashMap<&str, Node<'_>>) {
     (instuctions, nodes)
 }
 
-fn walk<'a>(instuctions:&'a str, nodes: &HashMap<&'a str, Node<'a>>, start: &'a str) -> (&'a str, usize){
+fn walk<'a>(
+    instuctions: &'a str,
+    nodes: &HashMap<&'a str, Node<'a>>,
+    start: &'a str,
+) -> (&'a str, usize) {
     instuctions
         .trim()
         .chars()
@@ -67,15 +71,16 @@ fn walk<'a>(instuctions:&'a str, nodes: &HashMap<&'a str, Node<'a>>, start: &'a 
                 Done((node, counter))
             } else {
                 Continue((
-                match dir {
-                    'L' => nodes[node].left,
-                    'R' => nodes[node].right,
-                    _ => unreachable!(),
-                }, counter + 1))
+                    match dir {
+                        'L' => nodes[node].left,
+                        'R' => nodes[node].right,
+                        _ => unreachable!(),
+                    },
+                    counter + 1,
+                ))
             }
         })
         .into_inner()
-        
 }
 
 pub fn aoc_2023_08_a(input: &str) -> usize {
@@ -91,11 +96,14 @@ pub fn aoc_2023_08_b(input: &str) -> usize {
     let start_nodes: Vec<_> = nodes
         .keys()
         .filter(|&n| n.ends_with("A"))
-        .map(|&n| n.clone())
+        // .map(|&n| n.clone())
         .collect();
     // println!("{:?}", nodes);
 
-    let cycle_nodes = start_nodes.iter().map(|start| walk(&instuctions, &nodes, start)).collect::<Vec<_>>();
+    let cycle_nodes = start_nodes
+        .iter()
+        .map(|start| walk(&instuctions, &nodes, start))
+        .collect::<Vec<_>>();
 
     println!("cycles {:?}", cycle_nodes);
 

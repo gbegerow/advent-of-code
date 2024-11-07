@@ -1,5 +1,5 @@
 /*
-    Idea: Rewrite spatial Graph (x,y) to temporal graph (x,y,t)  with t increasing by on in every step and 
+    Idea: Rewrite spatial Graph (x,y) to temporal graph (x,y,t)  with t increasing by one in every step and 
     delta one of (0,0); (0,1); (1,0); (0,-1); (-1,0);
     A storm occupies a field at a fix intervall. If storm starts at field the next time its in width(off by one?) time steps 
     so it is (distance to starting point + t) % width = 0 regardless of direction
@@ -118,7 +118,7 @@ fn occupies(p: i32, start: i32, t: i32, width: i32) -> bool {
 }
 
 
-_storms(input: &str) -> StormsMap {
+fn parse_storms(input: &str) -> StormsMap {
     let mut width = 0;
     let mut height = 0;
     let mut vertical_storms = Vec::with_capacity(100);

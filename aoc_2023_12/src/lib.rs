@@ -29,7 +29,7 @@
     Dynamic programming maybe?
     Never found the right reduction. Hard to get my brain around it.
 
-    With ? for multiple state it is an NFA not a DFA. Split token and let each new token follow another path. 
+    With ? for multiple state it is an NFA not a DFA. Split token and let each new token follow another path.
     Create states from groups.
         Dot  . => same state; # => next state; ? => split token, one same, one next state
         Group . => dead; # => next state; ? => split token, one dead, one next state
@@ -42,9 +42,6 @@
     Num of possibilities are just the sum of all token in accepting states.
     So much easier than DP
 */
-
-// use memoize::memoize;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct GroupPattern {
@@ -112,10 +109,7 @@ fn parse(input: &str) -> Vec<(&str, GroupPattern)> {
 
 // #[memoize] // memoize is not working with lifetimes?
 //
-fn possibilities<'a>(
-    report: String,
-    pattern: &'a GroupPattern,
-) -> usize {
+fn possibilities<'a>(report: String, pattern: &'a GroupPattern) -> usize {
     // println!("report: {}, pattern: {:?}", report, pattern);
 
     // if let Some(&p) = cache.get(&report) {
@@ -272,9 +266,6 @@ pub fn aoc_2023_12_b(input: &str) -> usize {
         .sum()
 }
 
-
-
-
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
@@ -350,7 +341,7 @@ mod tests {
     }
 
     // Test NFA
-    use super::State; 
+    use super::State;
     use super::State::*;
     #[rstest]
     #[case(vec![1,1,3], vec![Dot, LastOfGroup, Dot, LastOfGroup, Dot, Group, Group, LastOfGroup, TrailingDot])]

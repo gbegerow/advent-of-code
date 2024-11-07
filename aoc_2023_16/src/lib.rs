@@ -4,7 +4,7 @@
     Raytracing
     Store as u8[][]
     Upper nibble ./\|-
-    Lower nibble traveeling directiion 1 per bit
+    Lower nibble traveling direction 1 per bit
     count if lower = 0 on enter
     set bit of traveling direction
     push splits on stack
@@ -284,7 +284,7 @@ fn draw<B: Backend>(
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(20), Constraint::Percentage(80)].as_ref())
-            .split(f.size());
+            .split(f.area()); // todo: area is probably wrong, revisit
 
         f.render_widget(current_widget, chunks[0]);
         f.render_widget(grid_widget, chunks[1]);

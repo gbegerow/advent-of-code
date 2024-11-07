@@ -15,14 +15,14 @@ pub fn aoc_2020_02_a(input: &str) -> usize {
         .trim()
         .lines()
         .flat_map(|s| re.captures(s))
-        .flat_map(|&caps| {
+        .map(|caps| {
             let (min, max, letter, pwd) = (
                 caps["min"].parse::<usize>().unwrap(),
                 caps["max"].parse::<usize>().unwrap(),
-                caps["letter"].chars().next(),
-                caps["pwd"],
+                caps["letter"].chars().next().unwrap(),
+                &caps["pwd"],
             );
-            let letter_count = pwd.chars().filter_map(|c| c == letter).count();
+            let letter_count = pwd.chars().filter(|c| *c == letter).count();
 
             if letter_count < min || letter_count > max {
                 0

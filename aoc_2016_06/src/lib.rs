@@ -19,7 +19,7 @@ pub fn aoc_2016_06_a(input: &str) -> String {
 
     let mut pwd = String::new();
     for i in 0..cols {
-        let (b, val) =
+        let (b, _val) =
             histogram[i]
                 .iter()
                 .enumerate()
@@ -53,17 +53,16 @@ pub fn aoc_2016_06_b(input: &str) -> String {
 
     let mut pwd = String::new();
     for i in 0..cols {
-        let (b, val) =
-            histogram[i]
-                .iter()
-                .enumerate()
-                .fold((0, u32::MAX), |(min_index, min), (index, &val)| {
-                    if val < min && val > 0 {
-                        (index, val)
-                    } else {
-                        (min_index, min)
-                    }
-                });
+        let (b, val) = histogram[i].iter().enumerate().fold(
+            (0, u32::MAX),
+            |(min_index, min), (index, &val)| {
+                if val < min && val > 0 {
+                    (index, val)
+                } else {
+                    (min_index, min)
+                }
+            },
+        );
         let c = char::from(b as u8 + b'a');
         println!("{c} {val}@[{b}]");
         pwd.push(c);

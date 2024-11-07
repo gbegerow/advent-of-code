@@ -27,7 +27,7 @@ struct Screen {
 const FULL_PIXEL: u8 = b'#';
 // const EMPTY_PIXEL: u8 = b'.';
 
-impl Display for Screen {
+impl std::fmt::Display for Screen {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let buffer = &self.buffer[0];
         let disp = buffer
@@ -276,7 +276,7 @@ mod tests {
 
     #[test]
     fn aoc_2016_08_b() {
-        // AFBUPZBJPS
+        // Display shows: AFBUPZBJPS
         assert_eq!(super::aoc_2016_08_b(INPUT), 0);
     }
 

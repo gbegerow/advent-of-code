@@ -103,20 +103,20 @@ impl Facility {
             return true;
         }
 
-        let coupled = floor
-            .clone()
-            .filter(|i| i.ty == Itemtype::Chip)
-            .flat_map(|i| {
-                match floor
-                    .clone()
-                    .find(|g| g.ty == Itemtype::Generator && g.name == i.name)
-                {
-                    Some(g) => Some((i, g)),
-                    None => None,
-                }
-            })
-            .collect::<Vec<_>>();
-        println!("{:?}", coupled);
+        // let coupled = floor
+        //     .clone()
+        //     .filter(|i| i.ty == Itemtype::Chip)
+        //     .flat_map(|i| {
+        //         match floor
+        //             .clone()
+        //             .find(|g| g.ty == Itemtype::Generator && g.name == i.name)
+        //         {
+        //             Some(g) => Some((i, g)),
+        //             None => None,
+        //         }
+        //     })
+        //     .collect::<Vec<_>>();
+        // println!("Coupled: {:?}", coupled);
 
         // no uncoupled microchip -> valid
         // small vectors, linear search is faster than HashMap
@@ -129,6 +129,13 @@ impl Facility {
         });
 
         all_coupled
+    }
+
+    fn is_final(&self) -> bool {
+        // only last floor may have items
+        self.floors[..self.floors.len() - 1]
+            .iter()
+            .all(|f| f.len() == 0)
     }
 }
 /*

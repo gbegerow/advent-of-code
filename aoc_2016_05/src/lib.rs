@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2016/day/05
     Solution idea:
