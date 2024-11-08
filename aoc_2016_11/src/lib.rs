@@ -44,9 +44,12 @@ struct Facility {
 }
 
 impl Facility {
+    /// Get all valide moves from the current state on
     fn get_valid_moves(&self) -> Vec<Move> {
         // at least 1 Item, at most 2, elevator 1 up or down, no chip is allowed to be uncoupled and with another generator on the same floor
         // maybe SmallVec? no advantage
+
+        // which directions might the elevator move
         let target_floors: [isize; 2] = match self.elevator_at {
             0 => [1, 0],
             1 | 2 => [-1, 1],
@@ -82,6 +85,7 @@ impl Facility {
             .collect::<Vec<_>>()
     }
 
+    /// Does the move produce a valid state?
     fn is_valid_move(&self, m: &Move) -> bool {
         // is from floor valid without the moved items
         let from = self.floors[self.elevator_at]
@@ -96,6 +100,7 @@ impl Facility {
         self.is_valid_floor(to)
     }
 
+    /// Is floor valid? - no uncoupled chips on same floor as any generator
     fn is_valid_floor<'a>(&self, floor: impl Iterator<Item = &'a Item> + Clone) -> bool {
         // no generator -> no danger -> valid
         if !floor.clone().any(|i| i.ty == Itemtype::Generator) {
@@ -131,13 +136,31 @@ impl Facility {
         all_coupled
     }
 
+    /// Is Facility in final state? (all chips and generators on last floor)
     fn is_final(&self) -> bool {
         // only last floor may have items
         self.floors[..self.floors.len() - 1]
             .iter()
             .all(|f| f.len() == 0)
     }
+
+    /// Heuristic distance to final state
+    fn distance(&self) -> usize {
+        self.floors[..self.floors.len() - 1]
+            .iter()
+            .enumerate()
+            .map(|(i, f)| {
+                let floor_factor = self.floors.len() - i;
+                floor_factor * floor_factor * f.len()
+            })
+            .sum()
+    }
+
+    pub fn a_star(&mut self) -> Vec<Move> {
+        todo!("A*");
+    }
 }
+
 /*
 // A* in state space
 // Every state is a complete facility + move to get from previous form

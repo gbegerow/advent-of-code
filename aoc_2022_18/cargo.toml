@@ -5,3 +5,14 @@ authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
+# visualize dependencies
+bevy = { workspace = true, optional = true }
+bevy_panorbit_camera = { workspace = true, optional = true }
+
+[features]
+build-visualise = ["bevy", "bevy_panorbit_camera"]
+
+[[bin]]
+#cargo run --features build-visualise --bin visualize
+name = "visualize"
+required-features = ["build-visualise"]

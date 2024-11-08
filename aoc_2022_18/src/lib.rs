@@ -3,10 +3,10 @@
 use std::{cmp::Ordering, collections::BTreeSet};
 
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-struct Voxel {
-    x: i16,
-    y: i16,
-    z: i16,
+pub struct Voxel {
+    pub x: i16,
+    pub y: i16,
+    pub z: i16,
 }
 
 impl Voxel {
@@ -36,7 +36,7 @@ impl PartialOrd for Voxel {
     }
 }
 
-fn parse_voxel(input: &str) -> BTreeSet<Voxel> {
+pub fn parse_voxel(input: &str) -> BTreeSet<Voxel> {
     input
         .trim()
         .lines()
@@ -189,6 +189,8 @@ pub fn aoc_2022_18_b(input: &str) -> usize {
     count_sides(input, 64)
 }
 
+pub const INPUT: &str = include_str!("input.txt");
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -198,7 +200,7 @@ mod tests {
 
     #[test]
     fn aoc_2022_18_a() {
-        assert_eq!(super::aoc_2022_18_a(include_str!("input.txt")), 4482);
+        assert_eq!(super::aoc_2022_18_a(INPUT), 4482);
     }
 
     #[test]
@@ -208,7 +210,7 @@ mod tests {
 
     #[test]
     fn aoc_2022_18_b() {
-        assert_eq!(super::aoc_2022_18_b(include_str!("input.txt")), 2576);
+        assert_eq!(super::aoc_2022_18_b(INPUT), 2576);
     }
 
     #[test]
