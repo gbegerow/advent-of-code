@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn aoc_2022_18_a() {
-        assert_eq!(super::aoc_2022_18_a(INPUT), 4482);
+        assert_eq!(super::aoc_2022_18_a(super::INPUT), 4482);
     }
 
     #[test]
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn aoc_2022_18_b() {
-        assert_eq!(super::aoc_2022_18_b(INPUT), 2576);
+        assert_eq!(super::aoc_2022_18_b(super::INPUT), 2576);
     }
 
     #[test]

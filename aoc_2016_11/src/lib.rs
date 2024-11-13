@@ -1,12 +1,34 @@
-use std::{fmt, str::FromStr, string::ParseError};
+/* Find the task under https://adventofcode.com/2016/day/11
+    Solution idea:
+    A* in state space
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    Representation:
+    - Floor = Vec of Items, Facility = Vec of Floor
+    - Elevator position
+
+    Alternative representation:
+    Store names/shorts in extra array immutable
+    State is Vector of positions, alternating Chip Generator so Chip(3) = Index 2*3, Gen(0) = Index 0*2+1
+    Position is 0..3 => 2 Bits => 1-4 Chips needs 4*2*2 Bits = U16 for complete state,  5-8 U32. 8 Chips with 16 Floors (4 Bit) => U64
+    Assume 8 Chips in 16 Floors, not much more cost than 2 bit, but more flexible for b
+     can use bit ops for every test:
+     - No gen on floor => state AND genmask XOR floormask == 0
+     - No uncoupled chip on floor => shift down, State AND mask == floor && shiftdown, state AND mask == floor
+    less memory, faster and easier tests. Display a little bit harder.
+    set chip n to floor x => state OR= x shift right n*2 => easier move execute
+    Precalc:
+        generator_mask =>
+*/
+
+use std::{collections::BinaryHeap, fmt, str::FromStr, string::ParseError};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Itemtype {
     Chip,
     Generator,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Item {
     ty: Itemtype,
     name: String,
@@ -32,18 +54,20 @@ impl Item {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Move {
     elevator_to: usize,
     items: Vec<Item>,
 }
 
-#[derive(Debug, Clone)]
-struct Facility {
+#[derive(Debug, Clone, Hash)]
+struct State {
     elevator_at: usize,
+    // Optimization idea: move floornumber back to item, use one continous Vec (size does not change) and sort. Keep track of indices of every pair.
     floors: Vec<Vec<Item>>,
 }
 
-impl Facility {
+impl State {
     /// Get all valide moves from the current state on
     fn get_valid_moves(&self) -> Vec<Move> {
         // at least 1 Item, at most 2, elevator 1 up or down, no chip is allowed to be uncoupled and with another generator on the same floor
@@ -102,6 +126,8 @@ impl Facility {
 
     /// Is floor valid? - no uncoupled chips on same floor as any generator
     fn is_valid_floor<'a>(&self, floor: impl Iterator<Item = &'a Item> + Clone) -> bool {
+        // top candidate for optimization
+
         // no generator -> no danger -> valid
         if !floor.clone().any(|i| i.ty == Itemtype::Generator) {
             println!("No Generator");
@@ -157,73 +183,64 @@ impl Facility {
     }
 
     pub fn a_star(&mut self) -> Vec<Move> {
-        todo!("A*");
-    }
-}
+        // Every state is a complete facility + move to get from previous form
+        // theoretically we could just reconstruct state it every time from moves
 
-/*
-// A* in state space
-// Every state is a complete facility + move to get from previous form
-// theoretically we could just reconstruct state it every time from moves
-pub fn a_star(&mut self, start:&Coordinate) -> Option<Vec<Coordinate>>
-{
-    let capacity = self.width*self.height;
+        let capacity = 500;
+        // The set of discovered nodes that may need to be (re-)expanded.
+        // Initially, only the start node is known.
+        let mut open = BinaryHeap::new();
+        open.push(start.clone());
 
-    // The set of discovered nodes that may need to be (re-)expanded.
-    // Initially, only the start node is known.
-    let mut open =BinaryHeap::new();
-    open.push(start.clone());
+        // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
+        // to n currently known.
+        let mut came_from = HashMap::with_capacity(capacity);
 
-    // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
-    // to n currently known.
-    let mut came_from = HashMap::with_capacity(capacity);
-    // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
-    let mut g_score:HashMap<Coordinate, usize> = HashMap::with_capacity(capacity);
-    g_score.insert(start.clone(), 0);
-    // For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
-    // how cheap a path could be from start to finish if it goes through n.
-    let mut f_score:HashMap<Coordinate, usize> = HashMap::with_capacity(capacity);
-    f_score.insert(start.clone(), self.distance(&start, &self.end));
+        // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
+        let mut g_score: HashMap<Coordinate, usize> = HashMap::with_capacity(capacity);
+        g_score.insert(start.clone(), 0);
 
-    // println!("{}x{}={} start: {} end: {}",
-    //     self.width, self.height, capacity, start, self.end);
+        // For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
+        // how cheap a path could be from start to finish if it goes through n.
+        let mut f_score: HashMap<Coordinate, usize> = HashMap::with_capacity(capacity);
+        f_score.insert(start.clone(), self.distance());
 
-    while let Some((current, _)) = open.pop() {
-        // print!("{current}");
-        // println!("current: {} open: {} came_from: {} g_score: {} f_score: {}",
-        //     current, open.len(), came_from.len(), g_score.len(), f_score.len()
-        // );
+        while let Some((current, _)) = open.pop() {
+            // print!("{current}");
+            // println!("current: {} open: {} came_from: {} g_score: {} f_score: {}",
+            //     current, open.len(), came_from.len(), g_score.len(), f_score.len()
+            // );
 
-        // reached goal?
-        if current == self.end {
-            return Some(Self::reconstruct_path(came_from, current))
-        }
+            // reached goal?
+            if current == self.end {
+                return Some(Self::reconstruct_path(came_from, current));
+            }
 
-        for neighbour in self.get_connected_neighbours(&current){
-            // d(current,neighbor) is the weight of the edge from current to neighbor
-            // tentative_gScore is the distance from start to the neighbor through current
-            let d = self.distance(&current, &neighbour); // d must be 1 (same height) or 2 (highher/lower), maybe always 1?
-            let tentative_g_score = g_score[&current] + d;
-            if !g_score.contains_key(&neighbour) || tentative_g_score < g_score[&neighbour] {
-                // This path to neighbor is better than any previous one. Record it!
-                let h = self.distance(&self.start,&neighbour);
-                came_from.insert(neighbour.clone(), current.clone());
-                g_score.insert(neighbour.clone(), tentative_g_score);
-                f_score.insert(neighbour, tentative_g_score + h);
-                if open.iter().all(|n| *n.0 != neighbour) {
-                    open.push(neighbour, usize::MAX - h ); // priority queue uses highest prio, we want lowest distance
+            for neighbour in self.get_connected_neighbours(&current) {
+                // d(current,neighbor) is the weight of the edge from current to neighbor
+                // tentative_gScore is the distance from start to the neighbor through current
+                let d = self.distance(&current, &neighbour); // d must be 1 (same height) or 2 (highher/lower), maybe always 1?
+                let tentative_g_score = g_score[&current] + d;
+                if !g_score.contains_key(&neighbour) || tentative_g_score < g_score[&neighbour] {
+                    // This path to neighbor is better than any previous one. Record it!
+                    let h = self.distance(&self.start, &neighbour);
+                    came_from.insert(neighbour.clone(), current.clone());
+                    g_score.insert(neighbour.clone(), tentative_g_score);
+                    f_score.insert(neighbour, tentative_g_score + h);
+                    if open.iter().all(|n| *n.0 != neighbour) {
+                        open.push(neighbour, usize::MAX - h); // priority queue uses highest prio, we want lowest distance
+                    }
                 }
             }
         }
+        todo!("A*");
 
+        // Open set is empty but goal was never reached
+        None
     }
-
-    // Open set is empty but goal was never reached
-    None
 }
-    */
 
-impl fmt::Display for Facility {
+impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (floor, items) in self.floors.iter().enumerate().rev() {
             writeln!(
@@ -246,7 +263,7 @@ impl fmt::Display for Facility {
     }
 }
 
-impl FromStr for Facility {
+impl FromStr for State {
     type Err = ParseError;
 
     fn from_str(input: &str) -> Result<Self, Self::Err> {
@@ -272,7 +289,7 @@ impl FromStr for Facility {
             })
             .collect();
 
-        Ok(Facility {
+        Ok(State {
             floors,
             elevator_at: 0,
         })
@@ -280,7 +297,7 @@ impl FromStr for Facility {
 }
 
 pub fn aoc_2016_11_a(input: &str) -> usize {
-    let f: Facility = input.parse().expect("invalid input");
+    let f: State = input.parse().expect("invalid input");
 
     println!("{f}");
     0
@@ -308,7 +325,7 @@ mod tests {
     #[case(vec![Item::new(Itemtype::Chip, "lithium"), Item::new(Itemtype::Generator, "hydrogen")], false)]
     #[case(vec![Item::new(Itemtype::Generator, "lithium"), Item::new(Itemtype::Chip, "hydrogen"), Item::new(Itemtype::Generator, "hydrogen")], true)]
     fn floor_should(#[case] floor: Vec<Item>, #[case] exepected: bool) {
-        let fac: Facility = TEST_INPUT.parse().unwrap();
+        let fac: State = TEST_INPUT.parse().unwrap();
         assert!(fac.is_valid_floor(floor.iter()) == exepected);
     }
 
@@ -317,7 +334,7 @@ mod tests {
     #[case(Move{elevator_to:1, items:vec![Item::new(Itemtype::Chip, "lithium")]}, 0, false)]
     #[case(Move{elevator_to:0, items:vec![Item::new(Itemtype::Generator, "hydrogen")]}, 1, false)]
     fn move_should_be(#[case] move_to: Move, #[case] elevator_at: usize, #[case] exepected: bool) {
-        let mut fac: Facility = TEST_INPUT.parse().unwrap();
+        let mut fac: State = TEST_INPUT.parse().unwrap();
         fac.elevator_at = elevator_at;
         assert!(fac.is_valid_move(&move_to) == exepected)
     }

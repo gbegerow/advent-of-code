@@ -1,6 +1,9 @@
 use aoc_2022_18::{parse_voxel, Voxel, INPUT};
+use bevy::pbr::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+
+use std::f32::consts::PI;
 
 fn main() {
     App::new()
@@ -15,16 +18,41 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // Light
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
+    // // Light
+    // commands.spawn(PointLightBundle {
+    //     point_light: PointLight {
+    //         shadows_enabled: true,
+    //         intensity: 10_000_000.,
+    //         range: 100.0,
+    //         shadow_depth_bias: 0.2,
+    //         ..default()
+    //     },
+    //     transform: Transform::from_xyz(40.0, 80.0, 40.0),
+    //     ..default()
+    // });
+
+    // directional 'sun' light
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            illuminance: light_consts::lux::OVERCAST_DAY,
             shadows_enabled: true,
-            intensity: 10_000_000.,
-            range: 100.0,
             shadow_depth_bias: 0.2,
             ..default()
         },
-        transform: Transform::from_xyz(40.0, 80.0, 40.0),
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
+        // The default cascade config is designed to handle large scenes.
+        // As this example has a much smaller world, we can tighten the shadow
+        // bounds for better visual quality.
+        cascade_shadow_config: CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 4.0,
+            maximum_distance: 10.0,
+            ..default()
+        }
+        .into(),
         ..default()
     });
 
@@ -39,8 +67,8 @@ fn setup(
     ));
 
     // Voxel
-    let cube = meshes.add(Cuboid::new(0.5, 0.5, 0.5));
-    let hsla = Hsla::hsl(24.0, 1.0, 0.5);
+    let cube = meshes.add(Cuboid::new(1.0, 1.0, 1.0));
+    let hsla = Hsla::new(24.0, 1.0, 0.5, 0.5);
     let voxels = parse_voxel(INPUT);
 
     for Voxel { x, y, z } in voxels {
