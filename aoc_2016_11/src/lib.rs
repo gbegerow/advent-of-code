@@ -9,28 +9,31 @@
     Alternative representation:
     Store names/shorts in extra array immutable
     State is Vector of positions, alternating Chip Generator so Chip(3) = Index 2*3, Gen(0) = Index 0*2+1
-    Position is 0..3 => 2 Bits => 1-4 Chips needs 4*2*2 Bits = U16 for complete state,  5-8 U32. 8 Chips with 16 Floors (4 Bit) => U64
+    Position is 0..3 => 2 Bits => 1-4 Chips needs 4*2*2 Bits = u16 for complete state,  5-8 u32. 8 Chips with 16 Floors (4 Bit) => u64, 16 Chips => u128
     Assume 8 Chips in 16 Floors, not much more cost than 2 bit, but more flexible for b
+      Debug output in hex, more compact. One item = one nibble
      can use bit ops for every test:
      - No gen on floor => state AND genmask XOR floormask == 0
      - No uncoupled chip on floor => shift down, State AND mask == floor && shiftdown, state AND mask == floor
     less memory, faster and easier tests. Display a little bit harder.
     set chip n to floor x => state OR= x shift right n*2 => easier move execute
+    No movetype, just the new state
     Precalc:
-        generator_mask =>
+        generator_mask => 0x0F repeat = 0x0F0F0F0F0F0F0F0F (or 0xF0?)
+        generator_floor_mask =>  floor * generator_offset repeat
+        item_mask = 0x0F
+
+     chip 0 => Floor 0, gen 0 => Floor 1, chip 1 => Floor 0, gen 1 => Floor 2
+        0x2010 => 0010000000010000
+     chip 0 => Floor 1, gen 0 => Floor 1, chip 1 => Floor 0, gen 1 => Floor 2
+        1 + 1 * 16 + 0 * 256 + 2 * 256* 16 => 0010000000010001
+
 */
 
 use std::{collections::BinaryHeap, fmt, str::FromStr, string::ParseError};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Itemtype {
-    Chip,
-    Generator,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Item {
-    ty: Itemtype,
     name: String,
     short: String,
 }
@@ -47,29 +50,44 @@ impl Item {
             Itemtype::Generator => format!("{first_char}G"),
         };
         Self {
-            ty,
             name: name.to_string(),
             short,
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct Move {
-    elevator_to: usize,
-    items: Vec<Item>,
+struct Facility {
+    names: Vec<String>,
+    shorts: Vec<String>,
+}
+
+type Distributionibution = u64;
+
+/// Floor of chip and floor of generator
+/// coupled = .chip == .gen
+struct ItemPair {
+    chip: u8,
+    gen: u8,
+}
+
+impl ItemPair {
+    fn new(pair: u8) -> Self {
+        Self { chip: pair & 0x0F, gen:(pair >> 4) & 0x0F  }
+    }
 }
 
 #[derive(Debug, Clone, Hash)]
 struct State {
     elevator_at: usize,
     // Optimization idea: move floornumber back to item, use one continous Vec (size does not change) and sort. Keep track of indices of every pair.
-    floors: Vec<Vec<Item>>,
+    floors: Distributionibution,
+    item_count: usize,
 }
 
 impl State {
     /// Get all valide moves from the current state on
-    fn get_valid_moves(&self) -> Vec<Move> {
+    //#[inline(always)]
+    fn get_valid_moves(&self) -> Vec<State> {
         // at least 1 Item, at most 2, elevator 1 up or down, no chip is allowed to be uncoupled and with another generator on the same floor
         // maybe SmallVec? no advantage
 
@@ -81,17 +99,10 @@ impl State {
             _ => unreachable!("invalid floor"),
         };
 
-        let items = &self.floors[self.elevator_at];
+       
         // generate all pairs  and all single items on the floor
-        let item_combinations = items.iter().flat_map(|i| {
-            items.iter().map(move |j| {
-                if i == j {
-                    vec![i.clone()]
-                } else {
-                    vec![i.clone(), j.clone()]
-                }
-            })
-        });
+        let mut iter = self.floors.iter().filter()
+        let item_combinations = 
         // .collect();
         // general form of cross product:  let cross = ys.flat_map(|y| xs.clone().map(move |x| (x, y)));
 
@@ -100,12 +111,14 @@ impl State {
                 target_floors
                     .iter()
                     .filter(|f| **f != 0isize)
-                    .map(move |f| Move {
-                        elevator_to: self.elevator_at.saturating_add_signed(*f),
-                        items: pair.clone(),
-                    })
+                    .map(move |f| 
+                        State  {
+                            elevator_at: self.elevator_at.saturating_add_signed(*f),
+                            floors: self.floors.apply(pair),
+                            item_count: self.item_count,
+                        })
             })
-            .filter(|m| self.is_valid_move(m))
+            .filter(|m| m.is_valid())
             .collect::<Vec<_>>()
     }
 
@@ -181,64 +194,40 @@ impl State {
             })
             .sum()
     }
+}
 
-    pub fn a_star(&mut self) -> Vec<Move> {
-        // Every state is a complete facility + move to get from previous form
-        // theoretically we could just reconstruct state it every time from moves
 
-        let capacity = 500;
-        // The set of discovered nodes that may need to be (re-)expanded.
-        // Initially, only the start node is known.
-        let mut open = BinaryHeap::new();
-        open.push(start.clone());
-
-        // For node n, cameFrom[n] is the node immediately preceding it on the cheapest path from start
-        // to n currently known.
-        let mut came_from = HashMap::with_capacity(capacity);
-
-        // For node n, gScore[n] is the cost of the cheapest path from start to n currently known.
-        let mut g_score: HashMap<Coordinate, usize> = HashMap::with_capacity(capacity);
-        g_score.insert(start.clone(), 0);
-
-        // For node n, fScore[n] := gScore[n] + h(n). fScore[n] represents our current best guess as to
-        // how cheap a path could be from start to finish if it goes through n.
-        let mut f_score: HashMap<Coordinate, usize> = HashMap::with_capacity(capacity);
-        f_score.insert(start.clone(), self.distance());
-
-        while let Some((current, _)) = open.pop() {
-            // print!("{current}");
-            // println!("current: {} open: {} came_from: {} g_score: {} f_score: {}",
-            //     current, open.len(), came_from.len(), g_score.len(), f_score.len()
-            // );
-
-            // reached goal?
-            if current == self.end {
-                return Some(Self::reconstruct_path(came_from, current));
-            }
-
-            for neighbour in self.get_connected_neighbours(&current) {
-                // d(current,neighbor) is the weight of the edge from current to neighbor
-                // tentative_gScore is the distance from start to the neighbor through current
-                let d = self.distance(&current, &neighbour); // d must be 1 (same height) or 2 (highher/lower), maybe always 1?
-                let tentative_g_score = g_score[&current] + d;
-                if !g_score.contains_key(&neighbour) || tentative_g_score < g_score[&neighbour] {
-                    // This path to neighbor is better than any previous one. Record it!
-                    let h = self.distance(&self.start, &neighbour);
-                    came_from.insert(neighbour.clone(), current.clone());
-                    g_score.insert(neighbour.clone(), tentative_g_score);
-                    f_score.insert(neighbour, tentative_g_score + h);
-                    if open.iter().all(|n| *n.0 != neighbour) {
-                        open.push(neighbour, usize::MAX - h); // priority queue uses highest prio, we want lowest distance
-                    }
-                }
-            }
+impl IntoIterator for State {
+    type Item = ItemPair;
+    type IntoIter = ItemIterator;
+    
+    fn into_iter(self) -> Self::IntoIter {
+       ItemIterator {
+            current: 0,
+            distribution: self.floors,
+            length: self.item_count,
         }
-        todo!("A*");
-
-        // Open set is empty but goal was never reached
-        None
     }
 }
+
+pub struct ItemIterator {
+    current: usize,
+    distribution: Distribution,
+
+}
+
+impl Iterator for ItemIterator{
+    type Item = ItemPair;
+
+    fn next(&mut self) -> Option<u8>{
+        if self.current < self.length {
+            let pair = ItemPair::new(self.distribution >> 8*self.current);                
+            self.current += 1;
+            Some(pair)
+        } else {None}
+    }
+}
+
 
 impl fmt::Display for State {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

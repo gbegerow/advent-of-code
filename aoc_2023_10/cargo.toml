@@ -5,11 +5,20 @@ authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-rstest = {workspace = true}
-crossterm= {workspace = true, optional=true}
-ratatui = {workspace = true, optional=true}
+rstest = { workspace = true }
+crossterm = { workspace = true, optional = true }
+ratatui = { workspace = true, optional = true }
+# visualize dependencies
+bevy = { workspace = true, optional = true }
+#bevy_panorbit_camera = { workspace = true, optional = true }
+bevy_ecs_tilemap = { workspace = true, optional = true }
 
 [features]
 # default=["viz"]
-viz=["dep:crossterm","dep:ratatui"]
+viz = ["dep:crossterm", "dep:ratatui"]
+build-visualize = ["bevy", "bevy_ecs_tilemap"] #"bevy_panorbit_camera"
 
+[[bin]]
+#cargo run --features build-visualize --bin visualize
+name = "visualize"
+required-features = ["build-visualize"]
