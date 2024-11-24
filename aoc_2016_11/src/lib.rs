@@ -178,21 +178,12 @@ impl State {
     /// Is Facility in final state? (all chips and generators on last floor)
     fn is_final(&self) -> bool {
         // only last floor may have items
-        self.floors[..self.floors.len() - 1]
-            .iter()
-            .all(|f| f.len() == 0)
+       todo!("is_final")
     }
 
     /// Heuristic distance to final state
     fn distance(&self) -> usize {
-        self.floors[..self.floors.len() - 1]
-            .iter()
-            .enumerate()
-            .map(|(i, f)| {
-                let floor_factor = self.floors.len() - i;
-                floor_factor * floor_factor * f.len()
-            })
-            .sum()
+        todo!("distance")
     }
 }
 

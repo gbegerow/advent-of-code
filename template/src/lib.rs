@@ -16,6 +16,8 @@ pub fn part_b(_input: &str) -> usize {
     0
 }
 
+pub const INPUT: &str = include_str!("input.txt");
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
@@ -41,6 +43,4 @@ mod tests {
     fn part_b() {
         assert_eq!(super::part_b(INPUT), 0);
     }
-
-    const INPUT: &str = include_str!("input.txt");
 }

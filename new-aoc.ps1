@@ -1,6 +1,8 @@
+### Create a new solution folder for a certain year and day
+
 PARAM (
-    [int] $day = ((Get-Date).Day),
-    [int] $year = ((Get-Date).Year),
+    [int] $day = '25', # ((Get-Date).Day),
+    [int] $year = '2016', #((Get-Date).Year),
     [string] $template = (".\template"),
     [string] $workspaceFile = (".\cargo.toml")
 )
@@ -16,25 +18,22 @@ if (-not (Test-Path $folder)) {
 
     Push-Location $folder
 
-    # download input (only once) (curl is easier than invoke-webrequest)
-    # expect session code in environment variable aoc_session
-    $uri = "https://adventofcode.com/$year/day/$day/input"
-    curl $uri --cookie "session=$env:aoc_session" -o "src/input.txt" -A "gbegerow@gmail.com via curl"
-
-    if ((Get-Content "src/input.txt") -eq "Puzzle inputs differ by user.  Please log in to get your puzzle input." ) {
-        "Renew session code"
-    }
-
-    # modify cargo.toml
+    "modify cargo.toml"
     $toml = switch -Regex -File ".\cargo.toml" {
+        '^\s*name\s*=\s*"aoc_{year}_{day}_(.)"' { 
+            'name = "aoc_{0}_{1}_{2}"' -f $year, $day, $Matches.1
+        }
+
         '^\s*name\s*=\s*' { 
             'name = "{0}"' -f $folder
         }
+
         Default { $_ }
     } 
     $toml | Set-Content ".\cargo.toml" -Force
 
     # modify lib.rs to have better names for test (maybe go the full way and simply replace all occurences?)
+    "modify lib.rs"
     $lib = switch -Regex -File ".\src\lib.rs" {
         '^(.*)fn (part|aoc_\d+_\d+)_(.+)$' { 
             '{2}fn {0}_{1}' -f $folder, $Matches.3, $Matches.1
@@ -52,10 +51,48 @@ if (-not (Test-Path $folder)) {
     } 
     $lib | Set-Content ".\src\lib.rs" -Force
 
-    Pop-Location
+    # rename binaries if needed
+    if (Test-Path bin) {
+        Push-Location bin
 
-    git add .
+        foreach ( $p in ("aoc_yyyy_dd_a.rs", "aoc_yyyy_dd_b.rs")) { 
+            if (Test-Path $p) {
+                $newname = $p.Replace("yyyy", $year).Replace("dd", $day);
+                Rename-Item $p $newname;
+            
+                # currently no need to process file itself
+            }
+        }
+
+        Pop-Location
+    }
+    
+    Pop-Location
 }
+
+# second pass actions
+if (Test-Path $folder) {
+    Push-Location $folder
+
+    # download input (only once) (curl is easier than invoke-webrequest)
+    # expect session code in environment variable aoc_session
+    if (-not (Test-Path "src/input.txt")) {
+        "download input"
+        $uri = "https://adventofcode.com/$year/day/$day/input"
+        curl $uri --cookie "session=$env:aoc_session" -o "src/input.txt" -A "gbegerow@gmail.com via curl"
+
+        if ((Get-Content "src/input.txt") -eq "Puzzle inputs differ by user.  Please log in to get your puzzle input." ) {
+            "Renew session code in env aoc_session"
+        }
+    }
+
+    Pop-Location
+}
+
+# all preparation done, add it to 
+git add .
+
+Pop-Location
 
 #open in editor
 code . ".\$folder\src\lib.rs"
