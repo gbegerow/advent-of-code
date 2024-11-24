@@ -18,13 +18,13 @@ if (-not (Test-Path $folder)) {
 
     Push-Location $folder
 
-    "modify cargo.toml"
+    "modify local cargo.toml"
     $toml = switch -Regex -File ".\cargo.toml" {
         '^\s*name\s*=\s*"aoc_{year}_{day}_(.)"' { 
             'name = "aoc_{0}_{1}_{2}"' -f $year, $day, $Matches.1
         }
 
-        '^\s*name\s*=\s*' { 
+        '^\s*name = "advent-of-code"' { 
             'name = "{0}"' -f $folder
         }
 
