@@ -20,7 +20,7 @@
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=aoc_2022_01"
+                    "--package=${fileBasenameNoExtension}"
                 ],
                 "filter": {
                     "name": "aoc_2022_01",

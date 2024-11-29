@@ -33,35 +33,9 @@
 use std::{
     collections::{binary_heap::Iter, BinaryHeap},
     fmt,
-    ops::Index,
     str::FromStr,
     string::ParseError,
 };
-
-// #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-// struct Item {
-//     name: String,
-//     short: String,
-// }
-
-// impl Item {
-//     fn new( name: &str) -> Self {
-//         let first_char = name
-//             .chars()
-//             .map(|c| c.to_ascii_uppercase())
-//             .next()
-//             .expect("should have at least one letter");
-//         Self {
-//             name: name.to_string(),
-//             short: first_char,
-//         }
-//     }
-// }
-
-struct Facility {
-    names: Vec<String>,
-    shorts: Vec<String>,
-}
 
 type Distribution = u64;
 // get: ((self >> index * BUCKET_SIZE) & BUCKET_MASK) as u8
@@ -72,11 +46,11 @@ const CAPACITY: usize = 8;
 /// How many bits we have per position
 const BUCKET_SIZE: usize = 4;
 /// Mask for isolating a single position
-const BUCKET_MASK: u8 = 0xF;
+const BUCKET_MASK: Distribution = 0xF;
 /// How many bits per pair
 const PAIR_SIZE: usize = 2 * BUCKET_SIZE;
 /// Mask for isolating a pair
-const PAIR_MASK: u8 = 0xFF;
+const PAIR_MASK: Distribution = 0xFF;
 
 // indexer not possible as we cannot build a referene to a value
 // allow for  let chip4 = floors[5]
@@ -99,10 +73,11 @@ struct ItemPair {
 
 impl ItemPair {
     fn new(index: usize, pair: u8) -> Self {
+        let mask = BUCKET_MASK as u8;
         Self {
             index,
-            chip: pair & BUCKET_MASK,
-            gen: (pair >> BUCKET_SIZE) & BUCKET_MASK,
+            chip: pair & mask,
+            gen: (pair >> BUCKET_SIZE) & mask,
         }
     }
 
@@ -158,7 +133,7 @@ impl Iterator for IterFloorItem {
             return None;
         }
 
-        let item = ((self.state >> self.pos * BUCKET_SIZE) & BUCKET_MASK as Distribution) as u8;
+        let item = ((self.state >> self.pos * BUCKET_SIZE) & BUCKET_MASK) as u8;
         let floor_item = FloorItem::new(self.pos, item);
 
         self.pos += 1;
@@ -301,7 +276,85 @@ impl State {
     fn distance(&self) -> usize {
         // distance to final floor has most influence (cubic) but also distance between chip and genarator (linear or quadratic)
         // sum of (max_floor - floor)³ + (|chip - gen|)
-        todo!("distance")
+        self.pairs()
+            .map(|ItemPair { chip, gen, .. }| {
+                let cd = (4 - chip) as usize;
+                let gd = (4 - gen) as usize;
+                let cg = if chip > gen { chip - gen } else { gen - chip } as usize;
+
+                cd * cd * cd + gd * gd * gd + cg
+            })
+            .sum()
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct Facility {
+    names: Vec<String>,
+    shorts: Vec<char>,
+
+    state: State,
+}
+
+impl FromStr for Facility {
+    type Err = ParseError;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let mut names = Vec::with_capacity(CAPACITY);
+        let mut floors: Distribution = 0;
+
+        // we need the index of the name to be stable, so no HashSet
+        // closure changes on of the captured values so it must be mut
+        let mut set = |n: &str, offset: usize, value: usize| {
+            // memorize name
+            let index = names
+                .iter()
+                .position(|s| s == n)
+                .or_else(|| {
+                    names.push(n.to_string());
+                    Some(names.len() - 1)
+                })
+                .expect("how?");
+            let index = (index * 2 + offset) * BUCKET_SIZE;
+
+            // set item on floor
+            let mask = !(BUCKET_MASK << index);
+            let val = (value as Distribution & BUCKET_MASK) << index;
+
+            floors = (floors & mask) | val;
+
+            println!("name {n} offset {offset}  index {index} value {value}  mask {mask:08x} val {val:08x} floors {floors:08x}");
+        };
+
+        for (floor, line) in input.trim().lines().enumerate() {
+            // skip "The first floor contains"
+            let words: Vec<_> = line.split([' ', '-', ',', '.']).skip(4).collect();
+            // println!("{words:?}");
+            for i in 0..words.len() {
+                match words[i] {
+                    // a hydrogen-compatible microchip
+                    "microchip" => set(words[i - 2], 0, floor),
+
+                    // a hydrogen generator
+                    "generator" => set(words[i - 1], 1, floor),
+
+                    _ => (),
+                }
+            }
+        }
+
+        let shorts = names.iter().flat_map(|n| n.chars().next()).collect();
+        let item_count = names.len() * 2;
+
+        Ok(Facility {
+            names,
+            shorts,
+            state: State {
+                floors,
+                elevator_at: 0,
+                item_count,
+            },
+        })
     }
 }
 
@@ -325,39 +378,6 @@ impl State {
 //             )?;
 //         }
 //         Ok(())
-//     }
-// }
-
-// impl FromStr for State {
-//     type Err = ParseError;
-
-//     fn from_str(input: &str) -> Result<Self, Self::Err> {
-//         let floors = input
-//             .trim()
-//             .lines()
-//             .map(|line| {
-//                 // skip "The first floor contains"
-//                 let words: Vec<_> = line.split([' ', '-', ',', '.']).skip(4).collect();
-//                 // println!("{words:?}");
-//                 let mut items : Distribution = Vec::new();
-//                 for i in 0..words.len() {
-//                     match words[i] {
-//                         // a hydrogen-compatible microchip
-//                         "microchip" => items.push(Item::new(Itemtype::Chip, words[i - 2])),
-
-//                         // a hydrogen generator
-//                         "generator" => items.push(Item::new(Itemtype::Generator, words[i - 1])),
-//                         _ => (),
-//                     }
-//                 }
-//                 items
-//             })
-//             .collect();
-
-//         Ok(State {
-//             floors,
-//             elevator_at: 0,
-//         })
 //     }
 // }
 
@@ -387,7 +407,7 @@ mod tests {
     #[case(0x44_33_22_11_00, vec![ItemPair::new(0, 0x00), ItemPair::new(1, 0x11), ItemPair::new(2, 0x22), ItemPair::new(3, 0x33), ItemPair::new(4,0x44)])]
     #[case(0x40_30_20_10_01, vec![ItemPair::new(0, 0x01), ItemPair::new(1, 0x10), ItemPair::new(2, 0x20), ItemPair::new(3, 0x30), ItemPair::new(4,0x40)])]
     fn pair_iterator_should(#[case] floors: Distribution, #[case] expected: Vec<ItemPair>) {
-        let sut = State::new(4, floors, 6);
+        let sut = State::new(4, floors, 10);
 
         let pairs = sut.pairs().collect::<Vec<_>>();
         assert_eq!(&pairs[..], &expected[..])
@@ -397,7 +417,7 @@ mod tests {
     #[case(0x44_33_22_11_00, vec![FloorItem::new(0, 0), FloorItem::new(1, 0), FloorItem::new(2, 1), FloorItem::new(3, 1), FloorItem::new(4,2), FloorItem::new(5,2), FloorItem::new(6,3), FloorItem::new(7,3), FloorItem::new(8,4), FloorItem::new(9,4)])]
     #[case(0x98_76_54_32_10, vec![FloorItem::new(0, 0), FloorItem::new(1, 1), FloorItem::new(2, 2), FloorItem::new(3, 3), FloorItem::new(4,4), FloorItem::new(5,5), FloorItem::new(6,6), FloorItem::new(7,7), FloorItem::new(8,8), FloorItem::new(9,9)])]
     fn item_iterator_should(#[case] floors: Distribution, #[case] expected: Vec<FloorItem>) {
-        let sut = State::new(4, floors, 6);
+        let sut = State::new(4, floors, 10);
 
         let items = sut.iter().collect::<Vec<_>>();
         assert_eq!(&items[..], &expected[..])
@@ -418,7 +438,7 @@ mod tests {
     #[case(0x22_11_00, false)] // all coupled
     #[case(0x44_44_44, true)] // all coupled
     fn state_final_should(#[case] floors: Distribution, #[case] expected: bool) {
-        let sut = State::new(4, floors, 6);
+        let sut = State::new(4, floors, 8);
 
         assert_eq!(sut.is_final(), expected);
     }
@@ -438,6 +458,25 @@ mod tests {
         let post_move = sut.apply_move(&move_by, &items);
 
         assert_eq!(post_move, expected);
+    }
+
+    #[test]
+    fn parse_should() {
+        let sut: Facility = TEST_INPUT.parse().unwrap();
+
+        // println!("{:x}", sut.state.floors);
+        assert_eq!(
+            sut,
+            Facility {
+                names: vec!["hydrogen".to_string(), "lithium".to_string()],
+                shorts: vec!['h', 'l'],
+                state: State {
+                    floors: 0x20_10,
+                    elevator_at: 0,
+                    item_count: 4,
+                },
+            }
+        );
     }
 
     // #[rstest]
