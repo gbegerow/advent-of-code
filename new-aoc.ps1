@@ -66,6 +66,18 @@ if (-not (Test-Path $folder)) {
 
         Pop-Location
     }
+
+    if (Test-Path benches) {
+        "modify benchmarks"
+        $lib = switch -Regex -File ".\benches\benchmarks.rs" {
+            '^(.*)(aoc_\d+_\d+)\b' { 
+                '{0}' -f $folder
+            }
+            
+            Default { $_ }
+        } 
+        $lib | Set-Content ".\benches\benchmark.rs" -Force
+    }
     
     Pop-Location
 }

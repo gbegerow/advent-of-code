@@ -51,6 +51,8 @@ const BUCKET_MASK: Distribution = 0xF;
 const PAIR_SIZE: usize = 2 * BUCKET_SIZE;
 /// Mask for isolating a pair
 const PAIR_MASK: Distribution = 0xFF;
+/// number of floors
+const FLOOR_COUNT: usize = 4;
 
 // indexer not possible as we cannot build a referene to a value
 // allow for  let chip4 = floors[5]
@@ -358,28 +360,41 @@ impl FromStr for Facility {
     }
 }
 
-// impl fmt::Display for State {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         for (floor, items) in self.iter().enumerate().rev() {
-//             writeln!(
-//                 f,
-//                 "L{} {} {}",
-//                 floor + 1,
-//                 if self.elevator_at == floor {
-//                     "=>"
-//                 } else {
-//                     "  "
-//                 },
-//                 items
-//                     .iter()
-//                     .map(|s| s.short.as_str())
-//                     .collect::<Vec<&str>>()
-//                     .join(" . ")
-//             )?;
-//         }
-//         Ok(())
-//     }
-// }
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for floor in (0..FLOOR_COUNT).rev() {
+            write!(
+                f,
+                "L{} {} ",
+                floor + 1,
+                if self.elevator_at == floor {
+                    "=>"
+                } else {
+                    "  "
+                }
+            )?;
+
+            // todo: now we need the shorts... Add them to state?
+            for i in self
+                .iter()
+                .filter(|item| item.item as usize == floor)
+                .map(|item| {
+                    format!(
+                        "{}{}.",
+                        item.index,
+                        if (item.index & 1) == 0 { 'C' } else { 'G' }
+                    )
+                })
+            {
+                write!(f, "{}", i)?;
+            }
+
+            writeln!(f, "")?;
+        }
+
+        Ok(())
+    }
+}
 
 pub fn aoc_2016_11_a(_input: &str) -> usize {
     // let f: State = input.parse().expect("invalid input");
@@ -479,26 +494,16 @@ mod tests {
         );
     }
 
-    // #[rstest]
-    // #[case(vec![Item::new(Itemtype::Chip, "hydrogen"), Item::new(Itemtype::Chip, "lithium")], true)]
-    // #[case(vec![Item::new(Itemtype::Chip, "hydrogen"), Item::new(Itemtype::Generator, "hydrogen")], true)]
-    // #[case(vec![Item::new(Itemtype::Chip, "lithium"), Item::new(Itemtype::Generator, "hydrogen")], false)]
-    // #[case(vec![Item::new(Itemtype::Chip, "lithium"), Item::new(Itemtype::Generator, "hydrogen")], false)]
-    // #[case(vec![Item::new(Itemtype::Generator, "lithium"), Item::new(Itemtype::Chip, "hydrogen"), Item::new(Itemtype::Generator, "hydrogen")], true)]
-    // fn floor_should(#[case] floor: Vec<Item>, #[case] exepected: bool) {
-    //     let fac: State = TEST_INPUT.parse().unwrap();
-    //     assert!(fac.is_valid_floor(floor.iter()) == exepected);
-    // }
+    #[test]
+    fn format_should() {
+        let sut: Facility = TEST_INPUT.parse().unwrap();
 
-    // #[rstest]
-    // #[case(Move{elevator_to:1, items:vec![Item::new(Itemtype::Chip, "hydrogen")]}, 0, true)]
-    // #[case(Move{elevator_to:1, items:vec![Item::new(Itemtype::Chip, "lithium")]}, 0, false)]
-    // #[case(Move{elevator_to:0, items:vec![Item::new(Itemtype::Generator, "hydrogen")]}, 1, false)]
-    // fn move_should_be(#[case] move_to: Move, #[case] elevator_at: usize, #[case] exepected: bool) {
-    //     let mut fac: State = TEST_INPUT.parse().unwrap();
-    //     fac.elevator_at = elevator_at;
-    //     assert!(fac.is_valid_move(&move_to) == exepected)
-    // }
+        assert_eq!(
+            // TODO: "L4    \nL3    LG.\nL2    HG.\nL1 => HC.LC.\n",
+            "L4    \nL3    3G.\nL2    1G.\nL1 => 0C.2C.\n",
+            format!("{}", sut.state)
+        );
+    }
 
     #[test]
     fn aoc_2016_11_a() {

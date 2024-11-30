@@ -61,7 +61,7 @@ mod tests {
     }
 
     #[test]
-    fn aoc_2021_16_b() {.
+    fn aoc_2021_16_b() {
         assert_eq!(super::aoc_2021_16_b(INPUT), 0);
     }
 

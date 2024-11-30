@@ -3,7 +3,7 @@
     Solution idea:
 
 */
-
+#[tracing::instrument]
 pub fn part_a(input: &str) -> usize {
     // for line in input.trim().lines() {
     //     //
@@ -12,6 +12,7 @@ pub fn part_a(input: &str) -> usize {
     0
 }
 
+#[tracing::instrument]
 pub fn part_b(_input: &str) -> usize {
     0
 }
