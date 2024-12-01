@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn part_a() {
-        assert_eq!(super::part_a(INPUT), 0);
+        assert_eq!(super::part_a(super::INPUT), 0);
     }
 
     #[rstest]
@@ -42,6 +42,6 @@ mod tests {
 
     #[test]
     fn part_b() {
-        assert_eq!(super::part_b(INPUT), 0);
+        assert_eq!(super::part_b(super::INPUT), 0);
     }
 }

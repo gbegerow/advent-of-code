@@ -18,8 +18,7 @@ petgraph = "0.6.5"
 bevy = "0.15"
 bevy_panorbit_camera = "0.20.1"
 bevy_ecs_tilemap = "0.14.0"
-fxhash = "0.2.1"
-
+#fxhash = "0.2.1"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["fmt", "env-filter"] }
 rstest_reuse = "0.7.0"

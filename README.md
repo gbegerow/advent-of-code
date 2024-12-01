@@ -8,37 +8,37 @@ Level: Beginner / Intermediate in Rust
 
 Goal: Practicing Rust, learning new things, have *fun*
 
-Original project structure lousely based on https://github.com/jocelyn-stericker/aoc
+Original project structure lousely based on https://github.com/jocelyn-stericker/aoc, inspirations from https://github.com/ChristopherBiscardi/advent-of-code and https://github.com/maneatingape/advent-of-code-rust
 
 ## 2024
-| Day | Title | Status |
-| --- | ----- | ------ |
-| 01  |       |        |
-| 02  |       |        |
-| 03  |       |        |
-| 04  |       |        |
-| 05  |       |        |
-| 06  |       |        |
-| 07  |       |        |
-| 08  |       |        |
-| 08  |       |        |
-| 09  |       |        |
-| 10  |       |        |
-| 11  |       |        |
-| 12  |       |        |
-| 13  |       |        |
-| 14  |       |        |
-| 15  |       |        |
-| 16  |       |        |
-| 17  |       |        |
-| 18  |       |        |
-| 19  |       |        |
-| 20  |       |        |
-| 21  |       |        |
-| 22  |       |        |
-| 23  |       |        |
-| 24  |       |        |
-| 25  |       |        |
+| Day | Title              | Status |
+| --- | ------------------ | ------ |
+| 01  | Historian Hysteria | ⭐⭐     |
+| 02  |                    |        |
+| 03  |                    |        |
+| 04  |                    |        |
+| 05  |                    |        |
+| 06  |                    |        |
+| 07  |                    |        |
+| 08  |                    |        |
+| 08  |                    |        |
+| 09  |                    |        |
+| 10  |                    |        |
+| 11  |                    |        |
+| 12  |                    |        |
+| 13  |                    |        |
+| 14  |                    |        |
+| 15  |                    |        |
+| 16  |                    |        |
+| 17  |                    |        |
+| 18  |                    |        |
+| 19  |                    |        |
+| 20  |                    |        |
+| 21  |                    |        |
+| 22  |                    |        |
+| 23  |                    |        |
+| 24  |                    |        |
+| 25  |                    |        |
 
 ## 2023
 | Day | Title | Status |

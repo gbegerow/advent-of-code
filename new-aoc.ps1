@@ -57,10 +57,17 @@ if (-not (Test-Path $folder)) {
 
         foreach ( $p in ("aoc_yyyy_dd_a.rs", "aoc_yyyy_dd_b.rs")) { 
             if (Test-Path $p) {
+                $f = switch -Regex -File $p {
+                    '^(.*)(aoc_\d+_\d+)(.*)$' { 
+                        '{0}{1}{2}' -f $Matches.1, $folder, $Matches.3
+                    }
+                    
+                    Default { $_ }
+                } 
+                $f | Set-Content $p -Force
+                
                 $newname = $p.Replace("yyyy", $year).Replace("dd", $day);
-                Rename-Item $p $newname;
-            
-                # currently no need to process file itself
+                Rename-Item $p $newname;        
             }
         }
 
@@ -100,6 +107,16 @@ if (Test-Path $folder) {
 
     Pop-Location
 }
+
+# todo: get title from webpage, get stars for year
+# todo: add title and stars to aoc_data.json
+# todo: regen table at end of Readme from aoc_data.json
+
+# todo: add term_viz
+# todo: add viz
+
+# do not: submit result, I want to get it first hand 
+
 
 # all preparation done, add it to 
 git add .
