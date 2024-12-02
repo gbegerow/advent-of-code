@@ -14,16 +14,16 @@ test year_day part:
     cargo nextest run -p aoc_{{year_day}} aoc_{{year_day}}_{{part}}
 bench-all:
     cargo bench -q > benchmarks.txt
-bench year_day part:
-    cargo bench --bench {{day}}-bench {{part}} >> {{day}}.bench.txt
+bench year_day:
+    cargo bench --bench {{year_day}}-bench >> {{year-day}}.bench.txt
 flamegraph year_day part:
     cargo flamegraph --profile flamegraph --root --package aoc_{{year_day}} --bin {{part}}  --post-process 'flamelens --echo' -o flamegraphs/aoc_{{year_day}} --{{part}}.svg
 dhat year_day part:
     cargo run --profile dhat --features dhat-heap --package aoc_{{year_day}} --bin {{part}}
 # create the directory for a new day's puzzle and fetch the inputaoc_{{year_day}}
 # create day:
-    # cargo generate --path ./daily-template --name {{day}}
-    # just get-input {{day}}
+#    cargo generate --path ./daily-template --name {{day}}
+#    just get-input {{day}}
 
 # You can find SESSION by using Chrome tools:
 # 1) Go to https://adventofcode.com/2022/day/1/input
