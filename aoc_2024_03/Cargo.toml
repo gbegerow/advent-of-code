@@ -1,5 +1,5 @@
 [package]
-name = "advent-of-code"
+name = "aoc_2024_03"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
@@ -8,6 +8,7 @@ edition = "2021"
 rstest = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+regex = { workspace = true }
 
 # terminal visualization dependcies
 # crossterm = { workspace = true, optional = true }

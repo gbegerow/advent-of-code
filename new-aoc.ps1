@@ -52,14 +52,14 @@ if (-not (Test-Path $folder)) {
     $lib | Set-Content ".\src\lib.rs" -Force
 
     # rename binaries if needed
-    if (Test-Path bin) {
-        Push-Location bin
+    if (Test-Path "./src/bin") {
+        Push-Location "./src/bin"
 
         foreach ( $p in ("aoc_yyyy_dd_a.rs", "aoc_yyyy_dd_b.rs")) { 
             if (Test-Path $p) {
                 $f = switch -Regex -File $p {
-                    '^(.*)(aoc_\d+_\d+)(.*)$' { 
-                        '{0}{1}{2}' -f $Matches.1, $folder, $Matches.3
+                    'aoc_\d+_\d+' { 
+                        $_ -replace 'aoc_\d+_\d+', $folder; # we already matched it, is there a way to not match twice for replace?
                     }
                     
                     Default { $_ }
