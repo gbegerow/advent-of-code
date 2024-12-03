@@ -17,7 +17,8 @@ bench-all:
 bench year_day:
     cargo bench --bench aoc_{{year_day}}_bench >> aoc_{{year_day}}.bench.txt
 flamegraph year_day part:
-    cargo flamegraph --profile flamegraph --root --package aoc_{{year_day}} --bin {{part}}  --post-process 'flamelens --echo' -o flamegraphs/aoc_{{year_day}} --{{part}}.svg
+    # needs DTrace on Windows: https://github.com/microsoft/DTrace-on-Windows
+    cargo flamegraph --profile flamegraph --root --package aoc_{{year_day}} --bin aoc_{{year_day}}_{{part}}  -o flamegraphs/aoc_{{year_day}}_{{part}}.svg
 dhat year_day part:
     cargo run --profile dhat --features dhat-heap --package aoc_{{year_day}} --bin {{part}}
 # create the directory for a new day's puzzle and fetch the inputaoc_{{year_day}}

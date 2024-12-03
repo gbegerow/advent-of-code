@@ -14,8 +14,8 @@ Original project structure lousely based on https://github.com/jocelyn-stericker
 | Day | Title              | Status |
 | --- | ------------------ | ------ |
 | 01  | Historian Hysteria | ⭐⭐     |
-| 02  |                    |        |
-| 03  |                    |        |
+| 02  | Red-Nosed Reports  | ⭐⭐     |
+| 03  | Mull It Over       | ⭐⭐     |
 | 04  |                    |        |
 | 05  |                    |        |
 | 06  |                    |        |

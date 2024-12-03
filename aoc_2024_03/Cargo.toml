@@ -38,11 +38,11 @@ test-log.workspace = true
 # name = "visualize"
 # required-features = ["build-visualize"]
 
-# [[bin]]
-# name = "aoc_{year}_{day}_a"
+[[bin]]
+name = "aoc_2024_03_a"
 
-# [[bin]]
-# name = "aoc_{year}_{day}_b"
+[[bin]]
+name = "aoc_2024_03_b"
 
 [[bench]]
 name = "aoc_2024_03_bench"
