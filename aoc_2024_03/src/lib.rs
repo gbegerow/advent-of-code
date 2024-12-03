@@ -41,12 +41,13 @@ pub fn aoc_2024_03_b(input: &str) -> i64 {
     let mut closing = 3; // earliest valid position for ')'
     while let Some(next) = input[closing..].find(')') {
         closing = closing + next + 1; // next is offset relativ to closing
-                                      // println!(
-                                      //     "Closing @{} enabled {} '{}'",
-                                      //     closing,
-                                      //     enabled,
-                                      //     &input[closing.saturating_sub(12)..closing]
-                                      // );
+
+        // println!(
+        //     "Closing @{} enabled {} '{}'",
+        //     closing,
+        //     enabled,
+        //     &input[closing.saturating_sub(12)..closing]
+        // );
         if input[..closing].ends_with("do()") {
             enabled = true;
         } else if input[..closing].ends_with("don't()") {
@@ -63,7 +64,6 @@ pub fn aoc_2024_03_b(input: &str) -> i64 {
                 // println!("as: {astr} bs: {bstr}");
                 let a: i64 = astr.parse().expect("numbers only");
                 let b: i64 = bstr.parse().expect("numbers only");
-                println!("mul a: {a} b: {b}");
 
                 res += a * b;
             }

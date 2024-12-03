@@ -7,10 +7,10 @@ fn main() {
 
 #[divan::bench]
 fn part1() {
-    part_a(divan::black_box(INPUT));
+    aoc_9999_99_a(divan::black_box(INPUT));
 }
 
 #[divan::bench]
 fn part2() {
-    part_b(divan::black_box(INPUT));
+    aoc_9999_99_b(divan::black_box(INPUT));
 }

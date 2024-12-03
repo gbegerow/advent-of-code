@@ -5,7 +5,6 @@ authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-rstest = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 regex = { workspace = true }
@@ -17,6 +16,11 @@ regex = { workspace = true }
 # bevy = { workspace = true, optional = true }
 # #bevy_panorbit_camera = { workspace = true, optional = true }
 # bevy_ecs_tilemap = { workspace = true, optional = true }
+
+[dev-dependencies]
+divan.workspace = true
+rstest.workspace = true
+test-log.workspace = true
 
 # [features]
 # # default=["viz"]
@@ -39,3 +43,8 @@ regex = { workspace = true }
 
 # [[bin]]
 # name = "aoc_{year}_{day}_b"
+
+[[bench]]
+name = "aoc_2024_03_bench"
+path = "benches/benchmarks.rs"
+harness = false

@@ -2,7 +2,7 @@
 set shell := ["powershell.exe", "-noprofile", "-c"]
 
 # Use `just work day-01 a` to work on the specific binary for a specific day's problems
-work year_day: # part:
+work year_day part:
     cargo watch -w aoc_{{year_day}} -x "check -p aoc_{{year_day}}" -s "just test {{year_day}} {{part}}" -s "just lint {{year_day}}" -s "just bench {{year_day}} {{part}}" 
 # # www-watch:
 # #    RUST_LOG=info cargo +nightly leptos watch --project www
@@ -15,7 +15,7 @@ test year_day part:
 bench-all:
     cargo bench -q > benchmarks.txt
 bench year_day:
-    cargo bench --bench {{year_day}}-bench >> {{year-day}}.bench.txt
+    cargo bench --bench aoc_{{year_day}}_bench >> aoc_{{year_day}}.bench.txt
 flamegraph year_day part:
     cargo flamegraph --profile flamegraph --root --package aoc_{{year_day}} --bin {{part}}  --post-process 'flamelens --echo' -o flamegraphs/aoc_{{year_day}} --{{part}}.svg
 dhat year_day part:

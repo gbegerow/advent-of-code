@@ -77,13 +77,13 @@ if (-not (Test-Path $folder)) {
     if (Test-Path benches) {
         "modify benchmarks"
         $lib = switch -Regex -File ".\benches\benchmarks.rs" {
-            '^(.*)(aoc_\d+_\d+)\b' { 
-                '{0}' -f $folder
+            'aoc_\d+_\d+' { 
+                $_ -replace 'aoc_\d+_\d+', $folder; # we already matched it, is there a way to not match twice for replace?
             }
             
             Default { $_ }
         } 
-        $lib | Set-Content ".\benches\benchmark.rs" -Force
+        $lib | Set-Content ".\benches\benchmarks.rs" -Force
     }
     
     Pop-Location
