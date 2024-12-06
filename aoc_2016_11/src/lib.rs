@@ -144,12 +144,19 @@ impl Iterator for IterFloorItem {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 struct State {
     elevator_at: usize,
     // Optimization idea: move floornumber back to item, use one continous Vec (size does not change) and sort. Keep track of indices of every pair.
     floors: Distribution,
     item_count: usize,
+}
+
+impl fmt::Debug for State {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "=>{}: {:#08x}", self.elevator_at, self.floors)?;
+        Ok(())
+    }
 }
 
 impl State {
@@ -179,16 +186,15 @@ impl State {
 
     /// Get all valide moves from the current state on
     //#[inline(always)]
-    fn get_valid_moves(&self) -> Vec<State> {
+    fn get_valid_moves(&self) -> Vec<Self> {
         // at least 1 Item, at most 2, elevator 1 up or down, no chip is allowed to be uncoupled and with another generator on the same floor
         // maybe SmallVec? no advantage
 
         // which directions might the elevator move
         let target_floors: [isize; 2] = match self.elevator_at {
-            0 => [1, 0],
-            1 | 2 => [-1, 1],
-            3 => [-1, 0],
-            _ => unreachable!("invalid floor"),
+            0 => [1, 0],  // only up
+            3 => [-1, 0], // only down
+            _ => [-1, 1], // up and down
         };
 
         // generate all pairs  and all single items on the floor
@@ -198,17 +204,23 @@ impl State {
             .collect::<Vec<_>>();
 
         // general form of cross product:  let cross = ys.flat_map(|y| xs.clone().map(move |x| (x, y)));
-        let item_combinations = items_on_floor.iter().flat_map(|i| {
-            items_on_floor.iter().map(move |j| {
-                if i.index == j.index {
-                    vec![i.index]
-                } else {
-                    vec![i.index, j.index]
-                }
+        let item_combinations = items_on_floor
+            .iter()
+            .flat_map(|i| {
+                items_on_floor.iter().map(move |j| {
+                    if i.index == j.index {
+                        vec![i.index]
+                    } else {
+                        vec![i.index, j.index]
+                    }
+                })
             })
-        });
+            .collect::<Vec<_>>();
+
+        println!("state: {self:?} target_floors: {target_floors:?} on floor: {items_on_floor:?} item_combinations: {item_combinations:?}");
 
         item_combinations
+            .iter()
             .flat_map(|combination| {
                 target_floors
                     .iter()
@@ -409,6 +421,8 @@ pub fn aoc_2016_11_b(_input: &str) -> usize {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use super::*;
     use rstest::rstest;
 
@@ -473,6 +487,26 @@ mod tests {
         let post_move = sut.apply_move(&move_by, &items);
 
         assert_eq!(post_move, expected);
+    }
+
+    #[rstest]
+    #[case(0x00_00_00,vec![]) ]
+    #[case(0x00_01_00,vec![State::new(0, 0x00_00_00, 6), State::new(2, 0x00_02_00, 6)]) ]
+    #[case(0x00_11_00,vec![
+        State::new(0, 0x00_10_00, 6),
+        State::new(0, 0x00_12_00, 6),        
+        State::new(0, 0x00_01_00, 6),
+        State::new(0, 0x00_00_00, 6), 
+        State::new(0, 0x00_21_00, 6),
+        State::new(2, 0x00_22_00, 6)]) ]
+    fn get_valid_moves_should(#[case] floors: Distribution, #[case] expected: Vec<State>) {
+        let sut = State::new(1, floors, 6);
+        let moves = sut.get_valid_moves();
+        
+        let moves = moves.iter().collect::<HashSet<_>>();
+        let expected = expected.iter().collect::<HashSet<_>>();
+
+        assert_eq!(moves, expected);
     }
 
     #[test]

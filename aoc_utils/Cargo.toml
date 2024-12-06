@@ -1,0 +1,16 @@
+[package]
+name = "aoc_utils"
+version = "0.1.0"
+authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+glam = { workspace = true }
+num = { workspace = true }
+
+[dev-dependencies]
+divan = { workspace = true }
+rstest = { workspace = true }
+test-log = { workspace = true }

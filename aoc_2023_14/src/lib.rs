@@ -44,13 +44,16 @@ impl FromStr for Panel {
             })
             .collect::<Vec<_>>();
 
-        Ok(Panel(grid, rolling_stones))
+        Ok(Panel {
+            grid,
+            rolling_stones,
+        })
     }
 }
 
 pub fn aoc_2023_14_a(input: &str) -> usize {
-    let panel: Panel = input.parse();
-    0
+    let panel: Panel = input.parse().expect("valid input");
+    todo!("aoc 2023 14");
 }
 
 pub fn aoc_2023_14_b(_input: &str) -> usize {

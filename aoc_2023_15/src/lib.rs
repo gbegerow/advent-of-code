@@ -12,12 +12,11 @@ enum Op<'a> {
     Remove(&'a str),
 }
 
-const OP_RX: Regex = Regex::new( r"(\w+)((\=\d+)|\-)");
-impl FromStr for Op<'a> {
-    type Err=ParseError;
+impl<'a> FromStr for Op<'a> {
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        
+        let op_rx = Regex::new(r"(\w+)((\=\d+)|\-)").unwrap();
     }
 }
 
@@ -33,9 +32,9 @@ pub fn aoc_2023_15_a(input: &str) -> u32 {
 }
 
 pub fn aoc_2023_15_b(input: &str) -> u32 {
+    todo!("aoc_2023_15_b");
 
-
-    input.trim().split(',').map(|s| )
+    // input.trim().split(',').map(|s| )
 }
 
 #[cfg(test)]

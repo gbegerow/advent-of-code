@@ -16,8 +16,8 @@ Original project structure lousely based on https://github.com/jocelyn-stericker
 | 01  | Historian Hysteria | ⭐⭐     |
 | 02  | Red-Nosed Reports  | ⭐⭐     |
 | 03  | Mull It Over       | ⭐⭐     |
-| 04  |                    |        |
-| 05  |                    |        |
+| 04  | Ceres Search       | ⭐⭐     |
+| 05  | Print Queue        |        |
 | 06  |                    |        |
 | 07  |                    |        |
 | 08  |                    |        |
