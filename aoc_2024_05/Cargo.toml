@@ -44,6 +44,6 @@ test-log = { workspace = true }
 # name = "aoc_{year}_{day}_b"
 
 [[bench]]
-name = "aoc_{year}_{day}-bench"
+name = "aoc_2024_05_bench"
 path = "benches/benchmarks.rs"
 harness = false
