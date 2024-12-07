@@ -1,13 +1,24 @@
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2024/day/06
-    Solution idea:
-        Lines in 2D, either sparsemap aka HashSet or K-D-Tree (2D-Tree, alternating x,y partitioning)
-            or bitmap
-        main op: find all cells between current pos and next obstruction.
-        count every visited cell exactly once
-        end if cursor leaves bounds
-        Similar to 2023 16
+Solution idea:
+    Lines in 2D, either sparsemap aka HashSet or K-D-Tree (2D-Tree, alternating x,y partitioning)
+        or bitmap
+    main op: find all cells between current pos and next obstruction.
+    count every visited cell exactly once
+    end if cursor leaves bounds
+    Similar to 2023 16
 
+b How to construct a loop?
+candidate must be in visited
+canditate must be "before" an obstacle
+    and cause a right turn to another obstacle
+
+record for every visited pos and dir
+record every turn incoming_direction
+loop_dir = incoming_direction turn counter clockwise
+scan every turn backwards for visited point in loopdir, add to candidates
+
+run patrol for every candidate, if a turn is encounted twice in same direction we found loop
 */
 
 use glam::IVec2;
@@ -18,22 +29,6 @@ const N: IVec2 = IVec2::new(-1, 0);
 const E: IVec2 = IVec2::new(0, 1);
 const S: IVec2 = IVec2::new(1, 0);
 const W: IVec2 = IVec2::new(0, -1);
-
-// struct SparseGrid {
-//     obstructions: HashSet<IVec2>,
-//     width: i32,
-//     height: i32,
-// }
-
-// impl SparseGrid {
-//     fn new(obstructions: HashSet<IVec2>, width: i32, height: i32) -> Self {
-//         Self {
-//             obstructions,
-//             width,
-//             height,
-//         }
-//     }
-// }
 
 #[tracing::instrument]
 pub fn aoc_2024_06_a(input: &str) -> usize {
@@ -81,7 +76,7 @@ pub fn aoc_2024_06_a(input: &str) -> usize {
     let mut direction = direction;
 
     let mut visited = HashSet::with_capacity((width * height) as usize);
-    let outer_bounds = IVec2::new(width-1, height-1);
+    let outer_bounds = IVec2::new(width - 1, height - 1);
     println!("bounds {} - {}", IVec2::ZERO, outer_bounds);
     print_grid(cursor, direction, outer_bounds, &obstructions, &visited);
 
@@ -137,8 +132,8 @@ fn print_grid(
                     W => '<',
                     _ => '?',
                 }
-            } else if cur == IVec2::ZERO {
-                'o'
+            // } else if cur == IVec2::ZERO {
+            //     'o'
             } else if obstructions.contains(&cur) {
                 '#'
             } else if visited.contains(&cur) {
@@ -154,7 +149,7 @@ fn print_grid(
 }
 
 #[tracing::instrument]
-pub fn aoc_2024_06_b(_input: &str) -> usize {
+pub fn aoc_2024_06_b(input: &str) -> usize {
     0
 }
 
@@ -172,11 +167,11 @@ mod tests {
 
     #[test]
     fn aoc_2024_06_a() {
-        assert_eq!(super::aoc_2024_06_a(super::INPUT), 0);
+        assert_eq!(super::aoc_2024_06_a(super::INPUT), 5101);
     }
 
     #[rstest]
-    #[case("X, X", 0)]
+    #[case(TEST_INPUT, 6)]
     fn aoc_2024_06_b_example(#[case] input: &str, #[case] exepected: usize) {
         assert_eq!(super::aoc_2024_06_b(input), exepected);
     }
