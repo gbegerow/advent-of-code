@@ -18,6 +18,7 @@ use nom::{
 enum Op {
     Add,
     Multiplication,
+    Concatenation,
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct OpCombination {
@@ -73,6 +74,7 @@ impl Iterator for OpIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.current < self.len {
+            // Part a: interpret self.combination as binary and get digit current
             let bit = (self.combination >> self.current) & 1;
             self.current += 1;
 
@@ -81,6 +83,19 @@ impl Iterator for OpIterator {
                 1 => Some(Op::Multiplication),
                 _ => unreachable!("Bit can't be anything other than 0 or 1"),
             }
+
+            // Part b:  interpret self.combination as base 3 number and get digit self.current
+            // let digit = (self.combination / 3u64.pow(self.current as u32)) % 3;
+            // self.current += 1;
+
+            // match digit {
+            //     0 => Some(Op::Add),
+            //     1 => Some(Op::Multiplication),
+            //     2 => Some(Op::Concatenation),
+            //     _ => unreachable!("Digit can't be anything other than 0, 1, or 2"),
+            // }
+
+
         } else {
             None
         }
@@ -119,6 +134,7 @@ impl Eqation {
     }
 
     fn eval(&self, oc: OpCombination) -> u64 {
+        // Part a: use fold
         let evaluated = self.numbers.iter().skip(1).zip(oc.iter()).fold(
             self.numbers[0],
             |val, (v, op)| match op {
@@ -127,6 +143,27 @@ impl Eqation {
             },
         );
 
+        // println!("{} == {}", self.format(oc), evaluated);
+
+        evaluated
+    }
+    fn eval_b(&self, oc: OpCombination) -> u64 {
+        // Part b
+        let ops = oc.iter().collect::<Vec<_>>();
+        let mut evaluated = self.numbers[0];
+        for i in 1..self.numbers.len(){
+            let op = ops[i-1];
+            match op {
+                Op::Add => val + v,
+                Op::Multiplication => val * v,
+                Op::Concatenation => {
+                    // Optimizing candidate, migth be cheaper to calculate a shift factor to append numerically
+                    format!("{val}{v}").parse::<u65>().expect("should be valid number")
+                }
+                    
+                }
+            }
+        }
         // println!("{} == {}", self.format(oc), evaluated);
 
         evaluated

@@ -5,10 +5,10 @@
 */
 #[tracing::instrument]
 pub fn part_a(input: &str) -> usize {
+    // let x =input.trim().lines().map(|l| .... )
     // for line in input.trim().lines() {
     //     //
     // }
-    // input.trim().lines.map(|l| .... )
     0
 }
 
@@ -24,7 +24,7 @@ mod tests {
     use rstest::rstest;
 
     #[rstest]
-    #[case("X, X", 0)]
+    #[case(TEST_INPUT, 0)]
     fn part_a_example(#[case] input: &str, #[case] exepected: usize) {
         assert_eq!(super::aoc_2016_01_a(input), exepected);
     }
@@ -44,4 +44,6 @@ mod tests {
     fn part_b() {
         assert_eq!(super::part_b(super::INPUT), 0);
     }
+
+    const TEST_INPUT = "";
 }

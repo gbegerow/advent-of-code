@@ -1604,9 +1604,51 @@
   },
   {
     "year": 2024,
-    "day": 4,
+    "day": 5,
     "title": "Print Queue",
     "a": "*",
     "b": "*"
+  },
+  {
+    "year": 2024,
+    "day": 6,
+    "title": "Guard Gallivant",
+    "a": "*",
+    "b": ""
+  },
+  {
+    "year": 2024,
+    "day": 7,
+    "title": "Bridge Repair",
+    "a": "*",
+    "b": ""
+  },
+  {
+    "year": 2024,
+    "day": 8,
+    "title": "Resonant Collinearity",
+    "a": "",
+    "b": ""
+  },
+  {
+    "year": 2024,
+    "day": 9,
+    "title": "",
+    "a": "",
+    "b": ""
+  },
+  {
+    "year": 2024,
+    "day": 10,
+    "title": "",
+    "a": "",
+    "b": ""
+  },
+  {
+    "year": 2024,
+    "day": 11,
+    "title": "Plutonian Pebbles",
+    "a": "*",
+    "b": ""
   }
 ]
