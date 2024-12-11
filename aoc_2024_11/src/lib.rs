@@ -9,17 +9,31 @@
     can we somehow predict how much a number will grow in n steps?
 */
 
-fn blink_recursive(depth: u64, max_depth: u64, numbers: &mut Vec<u64>) -> usize {
+use std::collections::HashMap;
+
+fn blink_recursive(depth: u64, max_depth: u64, numbers: &mut Vec<u64>, known: &mut HashMap<(u64, u64), usize>) -> usize {
     // do not keep everything in memory at once, but there are still a lot of calls...
+    // memoize results for known sequences esp. 0, 1
+
     if depth == max_depth {
         return numbers.len();
     }
 
     blink_naive(numbers);
 
+    let next = depth+1;
     let sum = numbers
         .iter()
-        .map(|n| blink_recursive(depth + 1, max_depth, &mut vec![*n]))
+        .map(|n| {
+            let key = &(next, *n);
+            if known.contains_key(key) {
+                known[key]
+            } else {
+                let len = blink_recursive(next, max_depth, &mut vec![*n], known);
+                known.insert(*key, len);
+                len
+            }
+        })
         .sum();
     sum
 }
@@ -79,8 +93,9 @@ pub fn aoc_2024_11_a(input: &str) -> usize {
 #[tracing::instrument]
 pub fn aoc_2024_11_b(input: &str) -> usize {
     let mut numbers = parse(input);
+    let mut known = HashMap::with_capacity(10000);
 
-    let stones = blink_recursive(0, 75, &mut numbers);
+    let stones = blink_recursive(0, 75, &mut numbers, &mut known);
 
     stones
 }
@@ -108,8 +123,9 @@ mod tests {
     #[case(INPUT, 25, 224529)]
     fn blink_recursive_should(#[case] input: &str, #[case] blinks: u64, #[case] expected: usize) {
         let mut numbers = parse(input);
+        let mut known = HashMap::with_capacity(10000);
 
-        assert_eq!(blink_recursive(0, blinks, &mut numbers), expected);
+        assert_eq!(blink_recursive(0, blinks, &mut numbers,&mut known), expected);
     }
 
     #[test]
