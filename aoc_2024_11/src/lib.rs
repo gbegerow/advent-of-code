@@ -7,11 +7,19 @@
     sum lengths of all parts
 
     can we somehow predict how much a number will grow in n steps?
+    No, but remember, what we already calculated
+
+    recursive definition => memoize
 */
 
 use std::collections::HashMap;
 
-fn blink_recursive(depth: u64, max_depth: u64, numbers: &mut Vec<u64>, known: &mut HashMap<(u64, u64), usize>) -> usize {
+fn blink_recursive(
+    depth: u64,
+    max_depth: u64,
+    numbers: &mut Vec<u64>,
+    known: &mut HashMap<(u64, u64), usize>,
+) -> usize {
     // do not keep everything in memory at once, but there are still a lot of calls...
     // memoize results for known sequences esp. 0, 1
 
@@ -21,14 +29,16 @@ fn blink_recursive(depth: u64, max_depth: u64, numbers: &mut Vec<u64>, known: &m
 
     blink_naive(numbers);
 
-    let next = depth+1;
+    let next = depth + 1;
     let sum = numbers
         .iter()
         .map(|n| {
-            let key = &(next, *n);
+            let key = &(next, *n); // can't remember why we need the depth in the cache key, but we need it
+                                   // we need both because it is different of we want the len of 5 iterations or 75, stupid!
             if known.contains_key(key) {
                 known[key]
             } else {
+                // cannot use entry here or we will get a double mut borrow
                 let len = blink_recursive(next, max_depth, &mut vec![*n], known);
                 known.insert(*key, len);
                 len
@@ -48,6 +58,7 @@ fn blink_naive(numbers: &mut Vec<u64>) {
             numbers[i] = 1;
         } else {
             let s = numbers[i].to_string();
+            // could have used numbers[i].checked_ilog10 % 2 == 0 and s.split_at
             if 0 == s.len() % 2 {
                 // rule 2, length +1
                 let n1 = s[..s.len() / 2].parse::<u64>().expect("How?");
@@ -125,12 +136,15 @@ mod tests {
         let mut numbers = parse(input);
         let mut known = HashMap::with_capacity(10000);
 
-        assert_eq!(blink_recursive(0, blinks, &mut numbers,&mut known), expected);
+        assert_eq!(
+            blink_recursive(0, blinks, &mut numbers, &mut known),
+            expected
+        );
     }
 
     #[test]
     fn aoc_2024_11_b() {
-        assert_eq!(super::aoc_2024_11_b(super::INPUT), 0);
+        assert_eq!(super::aoc_2024_11_b(super::INPUT), 266820198587914);
     }
 
     // const TEST_INPUT2: &str = "0 1 10 99 999";

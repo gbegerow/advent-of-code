@@ -2,6 +2,7 @@ use glam::IVec2;
 ///! IVec2 based grid
 ///! Origin is left upper corner
 use std::{
+    fmt::Display,
     ops::{Index, IndexMut},
     str::FromStr,
     string::ParseError,
@@ -22,7 +23,7 @@ pub struct Grid<T> {
 
 impl<T> Grid<T> {
     #[inline(always)]
-    fn to_index(&self, index: IVec2) -> Option<usize> {
+    pub fn to_index(&self, index: IVec2) -> Option<usize> {
         if index.x < 0
             || index.y < 0
             || index.x >= self.width as i32
@@ -35,7 +36,7 @@ impl<T> Grid<T> {
     }
 
     #[inline(always)]
-    fn to_ivec(&self, index: usize) -> IVec2 {
+    pub fn to_ivec(&self, index: usize) -> IVec2 {
         IVec2::new((index % self.width) as i32, (index / self.height) as i32)
     }
 
@@ -51,17 +52,17 @@ impl<T> Grid<T> {
 
     /// iterate over all valid neighbours of pos along major axis
     pub fn iter_axis_neighbours(&self, pos: IVec2) -> impl Iterator<Item = &T> {
-        self.iter_neighbours(get_axis_positions(), pos)
+        self.iter_neighbours(adjacent_4(), pos)
     }
 
     /// iterate over all valid neighbours of pos along major axis and diagonals
     pub fn iter_adajacent_neighbours(&self, pos: IVec2) -> impl Iterator<Item = &T> {
-        self.iter_neighbours(get_adjacent_positions(), pos)
+        self.iter_neighbours(adjacent_8(), pos)
     }
 
     /// iterate over all valid neighbours of pos along diagonals
     pub fn iter_diagonal_neighbours(&self, pos: IVec2) -> impl Iterator<Item = &T> {
-        self.iter_neighbours(get_diagonal_positions(), pos)
+        self.iter_neighbours(adjacent_diagonal(), pos)
     }
 }
 
@@ -87,7 +88,7 @@ impl<T> IndexMut<IVec2> for Grid<T> {
     }
 }
 
-fn get_adjacent_positions() -> Vec<IVec2> {
+fn adjacent_8() -> Vec<IVec2> {
     vec![
         IVec2::new(1, 1),
         IVec2::new(0, 1),
@@ -100,7 +101,7 @@ fn get_adjacent_positions() -> Vec<IVec2> {
     ]
 }
 
-fn get_axis_positions() -> Vec<IVec2> {
+fn adjacent_4() -> Vec<IVec2> {
     vec![
         IVec2::new(0, 1),
         IVec2::new(0, -1),
@@ -109,7 +110,7 @@ fn get_axis_positions() -> Vec<IVec2> {
     ]
 }
 
-fn get_diagonal_positions() -> Vec<IVec2> {
+fn adjacent_diagonal() -> Vec<IVec2> {
     vec![
         IVec2::new(1, 1),
         IVec2::new(1, -1),
@@ -131,9 +132,11 @@ where
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let width = s.trim().lines().next().unwrap().trim().chars().count() as usize;
-        let height = s.trim().lines().count() as usize;
+        let s = s.trim();
+        let width = s.lines().next().unwrap().trim().chars().count() as usize;
+        let height = s.lines().count() as usize;
 
+        // use lines, we want to trim any line individually
         let values: Vec<T> = s.lines().flat_map(|x| x.trim().chars()).collect();
 
         Ok(Grid {
@@ -144,4 +147,102 @@ where
             upper_bound: IVec2::new(width as i32 - 1, height as i32 - 1),
         })
     }
+}
+
+impl<T: std::fmt::Debug> std::fmt::Debug for Grid<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Grid[{}x{}] {:?}",
+            self.width,
+            self.height,
+            self.values[..(self.width + 2).max(40)]
+        )
+    }
+}
+
+impl<T> Display for Grid<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let pretty = true; //f.options().get_alternate(); // needs unstable feature #![feature(formatting_options)]
+
+        if pretty {
+            // scale
+            for x in 0..self.width {
+                write!(
+                    f,
+                    "{}",
+                    match x % 10 {
+                        0 => '|',
+                        5 => '\'',
+                        _ => ' ',
+                    }
+                )?;
+            }
+            writeln!(f, "")?;
+        }
+
+        // grid
+        for (index, c) in self.values.iter().enumerate() {
+            write!(f, "{}", c)?;
+            if index > 0 && index % self.width == 0 {
+                if pretty {
+                    writeln!(f, " |{:3}", index / self.width)?
+                } else {
+                    writeln!(f, "")?
+                }
+            }
+        }
+        Ok(()) // Maybe writeln!(f,"")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::rstest;
+
+    #[rstest]
+    #[case(INPUT_01, GRID_01, 8, 6)]
+    fn from_str_should(
+        #[case] input: &str,
+        #[case] exp_values: &str,
+        #[case] exp_width: usize,
+        #[case] exp_height: usize,
+    ) {
+        let sut: Grid<_> = input.parse().unwrap();
+        let expected = Grid {
+            values: exp_values.chars().collect(),
+            width: exp_width,
+            height: exp_height,
+            lower_bound: IVec2::ZERO,
+            upper_bound: IVec2::new(
+                (exp_width - 1).try_into().unwrap(),
+                (exp_height - 1).try_into().unwrap(),
+            ),
+        };
+
+        assert_eq!(sut, expected);
+    }
+
+    //---------------- Test inputs
+    const INPUT_01: &str = "
+    #.######
+    #>>.<^<#
+    #.<..<<#
+    #>v.><>#
+    #<^v^^>#
+    ######.#";
+    const GRID_01: &str = "#.#######>>.<^<##.<..<<##>v.><>##<^v^^>#######.#";
+
+    // const INPUT_01: &str = "";
+    // const GRID_01: &Grid<char> = &Grid {
+    //     values: vec![],
+    //     width: 0,
+    //     height: 0,
+    //     lower_bound: IVec2::ZERO,
+    //     upper_bound: IVec2::new(0, 0),
+    // };
 }
