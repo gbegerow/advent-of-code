@@ -45,5 +45,5 @@ mod tests {
         assert_eq!(super::part_b(super::INPUT), 0);
     }
 
-    const TEST_INPUT = "";
+    const TEST_INPUT: &str = "";
 }

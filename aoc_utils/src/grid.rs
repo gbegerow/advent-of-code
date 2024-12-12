@@ -1,6 +1,9 @@
 use glam::IVec2;
 ///! IVec2 based grid
-///! Origin is left upper corner
+/// Origin is left upper corner
+/// Debug print like Grid[3x5] ['.','#','<','.','^']...
+/// Display print pretty grid with scales
+/// use iter_*_neighbours to iterate over adjacent gridcells
 use std::{
     fmt::Display,
     ops::{Index, IndexMut},
@@ -8,7 +11,7 @@ use std::{
     string::ParseError,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Grid<T> {
     values: Vec<T>,
     width: usize,
@@ -151,12 +154,19 @@ where
 
 impl<T: std::fmt::Debug> std::fmt::Debug for Grid<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let disp_width = (self.width + 2).min(40).min(self.values.len());
+        let ellipses = if self.values.len() > disp_width {
+            "..."
+        } else {
+            ""
+        };
         write!(
             f,
-            "Grid[{}x{}] {:?}",
+            "Grid[{}x{}] {:?}{}",
             self.width,
             self.height,
-            self.values[..(self.width + 2).max(40)]
+            &self.values[..disp_width],
+            ellipses
         )
     }
 }
@@ -184,12 +194,14 @@ where
             writeln!(f, "")?;
         }
 
+        let width = self.width; // .saturating_sub(1);
+
         // grid
         for (index, c) in self.values.iter().enumerate() {
             write!(f, "{}", c)?;
-            if index > 0 && index % self.width == 0 {
+            if ((index + 1) % width) == 0 {
                 if pretty {
-                    writeln!(f, " |{:3}", index / self.width)?
+                    writeln!(f, " |{:3}", (index + 1) / width)?
                 } else {
                     writeln!(f, "")?
                 }
@@ -206,6 +218,7 @@ mod tests {
 
     #[rstest]
     #[case(INPUT_01, GRID_01, 8, 6)]
+    #[case(INPUT_02, GRID_02, 3, 3)]
     fn from_str_should(
         #[case] input: &str,
         #[case] exp_values: &str,
@@ -227,7 +240,16 @@ mod tests {
         assert_eq!(sut, expected);
     }
 
-    //---------------- Test inputs
+    #[rstest]
+    #[case(INPUT_01, DISPLAY_01)]
+    #[case(INPUT_02, DISPLAY_02)]
+    fn display_should(#[case] input: &str, #[case] expected: &str) {
+        let sut: Grid<_> = input.parse().unwrap();
+        let display = format!("{:#}", sut);
+        assert_eq!(display, expected);
+    }
+
+    //---------------- Test inputs ----------------
     const INPUT_01: &str = "
     #.######
     #>>.<^<#
@@ -236,6 +258,19 @@ mod tests {
     #<^v^^>#
     ######.#";
     const GRID_01: &str = "#.#######>>.<^<##.<..<<##>v.><>##<^v^^>#######.#";
+
+    const DISPLAY_01: &str = "|    '  
+#.###### |  1
+#>>.<^<# |  2
+#.<..<<# |  3
+#>v.><># |  4
+#<^v^^># |  5
+######.# |  6
+";
+
+    const INPUT_02: &str = "123\n456\n789";
+    const GRID_02: &str = "123456789";
+    const DISPLAY_02: &str = "|  \n123 |  1\n456 |  2\n789 |  3\n";
 
     // const INPUT_01: &str = "";
     // const GRID_01: &Grid<char> = &Grid {
