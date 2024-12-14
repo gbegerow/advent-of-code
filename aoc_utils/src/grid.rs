@@ -186,8 +186,8 @@ where
                     "{}",
                     match x % 10 {
                         0 => '|',
-                        5 => '\'',
-                        _ => ' ',
+                        5 => ':',
+                        _ => '\'',
                     }
                 )?;
             }
@@ -259,7 +259,7 @@ mod tests {
     ######.#";
     const GRID_01: &str = "#.#######>>.<^<##.<..<<##>v.><>##<^v^^>#######.#";
 
-    const DISPLAY_01: &str = "|    '  
+    const DISPLAY_01: &str = "|''':''  
 #.###### |  1
 #>>.<^<# |  2
 #.<..<<# |  3
@@ -270,7 +270,7 @@ mod tests {
 
     const INPUT_02: &str = "123\n456\n789";
     const GRID_02: &str = "123456789";
-    const DISPLAY_02: &str = "|  \n123 |  1\n456 |  2\n789 |  3\n";
+    const DISPLAY_02: &str = "|'''\n123 |  1\n456 |  2\n789 |  3\n";
 
     // const INPUT_01: &str = "";
     // const GRID_01: &Grid<char> = &Grid {

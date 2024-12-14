@@ -3,8 +3,11 @@
     Solution idea:
 
 */
+// use aoc_utils::grid::Grid;
+
 #[tracing::instrument]
 pub fn part_a(input: &str) -> usize {
+    // let grid = input.parse::<Grid<char>>().expect("valid grid");
     // let x =input.trim().lines().map(|l| .... )
     // for line in input.trim().lines() {
     //     //

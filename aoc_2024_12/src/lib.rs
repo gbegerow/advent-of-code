@@ -1,7 +1,7 @@
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2024/day/12
     Solution idea:
-
+    linear equations with 2 unknown
 */
 use aoc_utils::grid::Grid;
 
@@ -10,7 +10,7 @@ pub fn aoc_2024_12_a(input: &str) -> usize {
     let grid = input.parse::<Grid<char>>().expect("valid grid");
 
     println!("{}", grid);
-    1
+    0
 }
 
 #[tracing::instrument]
