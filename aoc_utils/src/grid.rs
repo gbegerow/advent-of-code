@@ -1,9 +1,11 @@
 use glam::IVec2;
-///! IVec2 based grid
+/// IVec2 based grid
 /// Origin is left upper corner
 /// Debug print like Grid[3x5] ['.','#','<','.','^']...
 /// Display print pretty grid with scales
 /// use iter_*_neighbours to iterate over adjacent gridcells
+/// TODO: Add trait for parsing and displaying certain values / Positions
+/// TODO: Create display implementations for bevy and Ratatui
 use std::{
     fmt::Display,
     ops::{Index, IndexMut},
@@ -52,7 +54,8 @@ impl<T> Grid<T> {
 
     #[inline(always)]
     pub fn to_ivec(&self, index: usize) -> IVec2 {
-        IVec2::new((index % self.width) as i32, (index / self.height) as i32)
+        // Todo: unittest with non quadratic grid
+        IVec2::new((index % self.width) as i32, (index / self.width) as i32)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> + '_ {
@@ -97,6 +100,7 @@ impl<T: PartialEq> Grid<T> {
         if let Some(cursor_pos) = self.values.iter().position(|p| *p == cursor) {
             self.values[cursor_pos] = swap_with;
             self.cursor = self.to_ivec(cursor_pos);
+            // println!("Found cursor at {}", self.cursor);
         }
         // ignore not found for the moment. Maybe change to Result
         self.cursor
@@ -175,8 +179,8 @@ where
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim();
-        let width = s.lines().next().unwrap().trim().chars().count() as usize;
-        let height = s.lines().count() as usize;
+        let width = s.lines().next().unwrap().trim().chars().count();
+        let height = s.lines().count();
 
         // use lines, we want to trim any line individually
         let values: Vec<T> = s.lines().flat_map(|x| x.trim().chars()).collect();
@@ -202,9 +206,10 @@ impl<T: std::fmt::Debug> std::fmt::Debug for Grid<T> {
         };
         write!(
             f,
-            "Grid[{}x{}] {:?}{}",
+            "Grid[{}x{} @{}] {:?}{}",
             self.width,
             self.height,
+            self.cursor,
             &self.values[..disp_width],
             ellipses
         )
@@ -231,23 +236,25 @@ where
                     }
                 )?;
             }
-            writeln!(f, "")?;
+            writeln!(f)?;
         }
 
         let width = self.width; // .saturating_sub(1);
-
-        // grid
+                                // let cursor = self.to_index(self.cursor);
+                                // grid
         for (index, c) in self.values.iter().enumerate() {
+            //todo: if this is cursor pos we maybe change color
             write!(f, "{}", c)?;
+
             if ((index + 1) % width) == 0 {
                 if pretty {
                     writeln!(f, " |{:3}", (index + 1) / width)?
                 } else {
-                    writeln!(f, "")?
+                    writeln!(f)?
                 }
             }
         }
-        Ok(()) // Maybe writeln!(f,"")
+        Ok(())
     }
 }
 

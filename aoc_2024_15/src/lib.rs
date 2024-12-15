@@ -28,22 +28,22 @@ fn print_moves(moves: &Vec<IVec2>) {
     for m in moves {
         print!(
             "{}",
-            match m {
-                &NORTH => '^',
-                &EAST => '<',
-                &SOUTH => 'v',
-                &WEST => '<',
+            match *m {
+                NORTH => '^',
+                EAST => '<',
+                SOUTH => 'v',
+                WEST => '<',
                 _ => '?',
             }
         )
     }
-    println!("");
+    println!();
 }
 
 fn parse_wide_grid(s: &str) -> Result<Grid<char>, ParseError> {
     let s = s.trim();
-    let width = 2 * s.lines().next().unwrap().trim().chars().count() as usize;
-    let height = s.lines().count() as usize;
+    let width = 2 * s.lines().next().unwrap().trim().chars().count();
+    let height = s.lines().count();
 
     // use lines, we want to trim any line individually
     let values: Vec<char> = s
@@ -78,6 +78,63 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
                 grid[next] = 'O';
             }
         }
+
+        // handle wide crate
+        '[' | ']' => {
+            // there might be a huge buildup which all must move
+            // bfs for the whole blob
+
+            let mut frontier = vec![next];
+            // move all or nothing Last In First out, soHashSet is not good choice here
+            let mut move_it = Vec::new();
+            let mut can_move = true;
+
+            while let Some(pos) = frontier.pop() {
+                move_it.push(pos);
+                // we have explicit neighbours
+                // are we pushing agaist one side of a crate? Add the other to the pile
+                match grid[pos] {
+                    '[' if !frontier.contains(&(pos + EAST))
+                        && !move_it.contains(&(pos + EAST)) =>
+                    {
+                        frontier.push(pos + EAST);
+                    }
+                    ']' if !frontier.contains(&(pos + WEST))
+                        && !move_it.contains(&(pos + WEST)) =>
+                    {
+                        frontier.push(pos + WEST);
+                    }
+                    _ => (),
+                }
+
+                let moves_to = pos + direction;
+                match grid[moves_to] {
+                    // found a new box, move it along
+                    '[' | ']' if !frontier.contains(&moves_to) && !move_it.contains(&moves_to) => {
+                        frontier.push(moves_to);
+                    }
+                    // hit a rock (literaly)
+                    '#' => {
+                        can_move = false;
+                        break;
+                    }
+                    _ => (),
+                }
+            }
+
+            if can_move {
+                // move the whole pile in LIFO order
+                while let Some(m) = move_it.pop() {
+                    // there should only be '.' or already overwritten stuff there as we work in LIFO order
+                    grid[m + direction] = grid[m];
+                    grid[m] = '.'; // cleanup behind
+                }
+
+                // and move the cursor
+                grid.cursor += direction;
+            }
+        }
+
         // empty space, just move cursor
         '.' => {
             grid.cursor += direction;
@@ -85,6 +142,12 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
         // do nothing on walls
         _ => {}
     }
+}
+
+fn calculate_score(grid: &Grid<char>) -> i32 {
+    grid.iter_with_positions()
+        .filter(|(_, c)| **c == 'O' || **c == '[')
+        .fold(0, |accu, (p, _)| accu + p.x + p.y * 100)
 }
 
 #[tracing::instrument]
@@ -102,24 +165,29 @@ pub fn aoc_2024_15_a(input: &str) -> i32 {
 
     println!("{grid}");
 
-    grid.iter_with_positions()
-        .filter(|(_, c)| **c == 'O')
-        .fold(0, |accu, (p, _)| accu + p.x + p.y * 100)
+    calculate_score(&grid)
 }
 
 #[tracing::instrument]
 pub fn aoc_2024_15_b(input: &str) -> i32 {
+    // setup
     let (gd, mv) = input.split_once("\n\n").expect("valid grid");
 
     let mut grid = parse_wide_grid(gd).expect("valid grid");
     grid.find_cursor('@', '.');
+    // println!("{grid:?}\n{grid}");
 
     let moves = parse_moves(mv);
 
-    println!("{grid:#}");
-    print_moves(&moves);
+    // update
+    for direction in moves {
+        move_to(&mut grid, direction);
+        // println!("{grid}");
+    }
+    println!("{grid}");
 
-    0
+    // result
+    calculate_score(&grid)
 }
 
 pub const INPUT: &str = include_str!("input.txt");
@@ -141,6 +209,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 9021)]
+    #[case(TEST_INPUT_2, 1751)]
+    #[case(TEST_INPUT_3, 618)]
     fn aoc_2024_15_b_example(#[case] input: &str, #[case] exepected: i32) {
         assert_eq!(super::aoc_2024_15_b(input), exepected);
     }
@@ -151,7 +221,7 @@ mod tests {
     }
 
     const TEST_INPUT: &str = "
-    ##########
+##########
 #..O..O.O#
 #......O.#
 #.OO..O.O#
@@ -185,4 +255,16 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
 ########
 
 <^^>>>vv<v>>v<<";
+
+    #[allow(dead_code)]
+    const TEST_INPUT_3: &str = "
+#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^";
 }
