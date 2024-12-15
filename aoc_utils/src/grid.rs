@@ -14,10 +14,11 @@ use std::{
 #[derive(Clone, PartialEq, Eq)]
 pub struct Grid<T> {
     values: Vec<T>,
-    width: usize,
-    height: usize,
-    lower_bound: IVec2,
-    upper_bound: IVec2,
+    pub width: usize,
+    pub height: usize,
+    pub cursor: IVec2,
+    pub lower_bound: IVec2,
+    pub upper_bound: IVec2,
 }
 
 // pub struct NeihbourIterator {
@@ -25,6 +26,17 @@ pub struct Grid<T> {
 // }
 
 impl<T> Grid<T> {
+    pub fn new(values: Vec<T>, width: usize, height: usize) -> Self {
+        Self {
+            values,
+            width,
+            height,
+            cursor: IVec2::ZERO,
+            lower_bound: IVec2::ZERO,
+            upper_bound: IVec2::new(width as i32 - 1, height as i32 - 1),
+        }
+    }
+
     #[inline(always)]
     pub fn to_index(&self, index: IVec2) -> Option<usize> {
         if index.x < 0
@@ -41,6 +53,17 @@ impl<T> Grid<T> {
     #[inline(always)]
     pub fn to_ivec(&self, index: usize) -> IVec2 {
         IVec2::new((index % self.width) as i32, (index / self.height) as i32)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &T> + '_ {
+        self.values.iter()
+    }
+
+    pub fn iter_with_positions(&self) -> impl Iterator<Item = (IVec2, &T)> + '_ {
+        self.values
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (self.to_ivec(i), c))
     }
 
     /// iterate over all valid neighbours of pos given by offsets
@@ -66,6 +89,17 @@ impl<T> Grid<T> {
     /// iterate over all valid neighbours of pos along diagonals
     pub fn iter_diagonal_neighbours(&self, pos: IVec2) -> impl Iterator<Item = &T> {
         self.iter_neighbours(adjacent_diagonal(), pos)
+    }
+}
+
+impl<T: PartialEq> Grid<T> {
+    pub fn find_cursor(&mut self, cursor: T, swap_with: T) -> IVec2 {
+        if let Some(cursor_pos) = self.values.iter().position(|p| *p == cursor) {
+            self.values[cursor_pos] = swap_with;
+            self.cursor = self.to_ivec(cursor_pos);
+        }
+        // ignore not found for the moment. Maybe change to Result
+        self.cursor
     }
 }
 
@@ -103,6 +137,11 @@ fn adjacent_8() -> Vec<IVec2> {
         IVec2::new(-1, -1),
     ]
 }
+
+pub const NORTH: IVec2 = IVec2::new(0, -1);
+pub const EAST: IVec2 = IVec2::new(1, 0);
+pub const SOUTH: IVec2 = IVec2::new(0, 1);
+pub const WEST: IVec2 = IVec2::new(-1, 0);
 
 fn adjacent_4() -> Vec<IVec2> {
     vec![
@@ -146,6 +185,7 @@ where
             values,
             width,
             height,
+            cursor: IVec2::ZERO,
             lower_bound: IVec2::ZERO,
             upper_bound: IVec2::new(width as i32 - 1, height as i32 - 1),
         })
@@ -230,6 +270,7 @@ mod tests {
             values: exp_values.chars().collect(),
             width: exp_width,
             height: exp_height,
+            cursor: IVec2::ZERO,
             lower_bound: IVec2::ZERO,
             upper_bound: IVec2::new(
                 (exp_width - 1).try_into().unwrap(),

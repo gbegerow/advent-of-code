@@ -2,6 +2,11 @@
 /* Find the task under https://adventofcode.com/2024/day/14
     Solution idea:
         a) vector math
+        b) WTH!?!?!
+
+    Further ideas after getting the star:
+    This is object detection in images
+    Use convolution kernel to find edges and a high frequency fiilter to remove noise
 */
 use glam::IVec2;
 use nom::{
@@ -138,7 +143,7 @@ pub fn aoc_2024_14_b(input: &str, bounds: IVec2) -> i32 {
     // let len3 = bots.len() as i32 / 3;
 
     let mut safeties = Vec::new();
-    for t in 0..50_000 {
+    for t in 0..bounds.x * bounds.y {
         let state = get_at_step(&bots, t, bounds);
 
         // maybe it is in one quadrant
