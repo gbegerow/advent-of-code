@@ -240,12 +240,15 @@ where
         }
 
         let width = self.width; // .saturating_sub(1);
-                                // let cursor = self.to_index(self.cursor);
-                                // grid
+        let cursor = self.to_index(self.cursor);
+        // grid
         for (index, c) in self.values.iter().enumerate() {
             //todo: if this is cursor pos we maybe change color
-            write!(f, "{}", c)?;
-
+            if Some(index) != cursor {
+                write!(f, "{}", c)?;
+            } else {
+                write!(f, "@")?
+            }
             if ((index + 1) % width) == 0 {
                 if pretty {
                     writeln!(f, " |{:3}", (index + 1) / width)?

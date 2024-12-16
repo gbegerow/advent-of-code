@@ -1,4 +1,4 @@
-use std::string::ParseError;
+use std::{collections::VecDeque, string::ParseError};
 
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2024/day/15
@@ -60,7 +60,38 @@ fn parse_wide_grid(s: &str) -> Result<Grid<char>, ParseError> {
     Ok(Grid::new(values, width, height))
 }
 
+fn count_crates(grid: &Grid<char>) -> usize {
+    let mut crates = 0;
+    let mut wide_crates = 0;
+    for (p, c) in grid.iter_with_positions() {
+        match c {
+            'O' => {
+                crates += 1;
+            }
+            '[' => {
+                if grid[p + EAST] == ']' {
+                    wide_crates += 1;
+                } else {
+                    println!("{grid:#}");
+                    panic!("broken crate '[' at {p}")
+                }
+            }
+            ']' => {
+                if grid[p + WEST] != '[' {
+                    println!("{grid:#}");
+                    panic!("broken crate ']' at {p}")
+                }
+            }
+            _ => (),
+        }
+    }
+
+    crates + wide_crates
+}
+
 fn move_to(grid: &mut Grid<char>, direction: IVec2) {
+    let crates = count_crates(grid);
+
     // look for '#' in move direction
     let mut next = grid.cursor + direction;
     match grid[next] {
@@ -84,25 +115,24 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
             // there might be a huge buildup which all must move
             // bfs for the whole blob
 
-            let mut frontier = vec![next];
-            // move all or nothing Last In First out, soHashSet is not good choice here
+            let mut frontier = VecDeque::from(vec![next]);
+            // move all or nothing Last In First out, so HashSet is not good choice here
             let mut move_it = Vec::new();
             let mut can_move = true;
 
-            while let Some(pos) = frontier.pop() {
+            while let Some(pos) = frontier.pop_front() {
+                if move_it.contains(&pos) {
+                    continue;
+                }
                 move_it.push(pos);
                 // we have explicit neighbours
                 // are we pushing agaist one side of a crate? Add the other to the pile
                 match grid[pos] {
-                    '[' if !frontier.contains(&(pos + EAST))
-                        && !move_it.contains(&(pos + EAST)) =>
-                    {
-                        frontier.push(pos + EAST);
+                    '[' => {
+                        frontier.push_back(pos + EAST);
                     }
-                    ']' if !frontier.contains(&(pos + WEST))
-                        && !move_it.contains(&(pos + WEST)) =>
-                    {
-                        frontier.push(pos + WEST);
+                    ']' => {
+                        frontier.push_back(pos + WEST);
                     }
                     _ => (),
                 }
@@ -110,8 +140,8 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
                 let moves_to = pos + direction;
                 match grid[moves_to] {
                     // found a new box, move it along
-                    '[' | ']' if !frontier.contains(&moves_to) && !move_it.contains(&moves_to) => {
-                        frontier.push(moves_to);
+                    '[' | ']' => {
+                        frontier.push_back(moves_to);
                     }
                     // hit a rock (literaly)
                     '#' => {
@@ -123,6 +153,12 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
             }
 
             if can_move {
+                // print!("Move from {} in {}: ", grid.cursor, direction);
+                // for m in &move_it {
+                //     print!("{}", m);
+                // }
+                // println!();
+
                 // move the whole pile in LIFO order
                 while let Some(m) = move_it.pop() {
                     // there should only be '.' or already overwritten stuff there as we work in LIFO order
@@ -133,6 +169,8 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
                 // and move the cursor
                 grid.cursor += direction;
             }
+
+            assert_eq!(count_crates(grid), crates);
         }
 
         // empty space, just move cursor
@@ -184,7 +222,7 @@ pub fn aoc_2024_15_b(input: &str) -> i32 {
         move_to(&mut grid, direction);
         // println!("{grid}");
     }
-    println!("{grid}");
+    // println!("{grid}");
 
     // result
     calculate_score(&grid)
