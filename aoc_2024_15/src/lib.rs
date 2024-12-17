@@ -121,6 +121,7 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
             let mut can_move = true;
 
             while let Some(pos) = frontier.pop_front() {
+                // seen?
                 if move_it.contains(&pos) {
                     continue;
                 }
@@ -155,7 +156,7 @@ fn move_to(grid: &mut Grid<char>, direction: IVec2) {
             if can_move {
                 // print!("Move from {} in {}: ", grid.cursor, direction);
                 // for m in &move_it {
-                //     print!("{}", m);
+                //     print!("{}  ", m);
                 // }
                 // println!();
 

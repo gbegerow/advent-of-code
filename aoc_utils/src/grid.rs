@@ -93,9 +93,56 @@ impl<T> Grid<T> {
     pub fn iter_diagonal_neighbours(&self, pos: IVec2) -> impl Iterator<Item = &T> {
         self.iter_neighbours(adjacent_diagonal(), pos)
     }
+
+    /// iterate over all valid neighbours of pos given by offsets
+    pub fn iter_neighbours_with_positions(
+        &self,
+        delta: Vec<IVec2>,
+        pos: IVec2,
+    ) -> impl Iterator<Item = (IVec2, &T)> {
+        delta
+            .iter()
+            .flat_map(|delta| {
+                self.to_index(pos + delta)
+                    .map(|p| (pos + delta, &self.values[p]))
+            })
+            .collect::<Vec<_>>()
+            .into_iter()
+    }
+
+    /// iterate over all valid neighbours of pos along major axis
+    pub fn iter_axis_neighbours_with_positions(
+        &self,
+        pos: IVec2,
+    ) -> impl Iterator<Item = (IVec2, &T)> {
+        self.iter_neighbours_with_positions(adjacent_4(), pos)
+    }
+
+    /// iterate over all valid neighbours of pos along major axis and diagonals
+    pub fn iter_adajacent_neighbours_with_positions(
+        &self,
+        pos: IVec2,
+    ) -> impl Iterator<Item = (IVec2, &T)> {
+        self.iter_neighbours_with_positions(adjacent_8(), pos)
+    }
+
+    /// iterate over all valid neighbours of pos along diagonals
+    pub fn iter_diagonal_neighbours_with_positions(
+        &self,
+        pos: IVec2,
+    ) -> impl Iterator<Item = (IVec2, &T)> {
+        self.iter_neighbours_with_positions(adjacent_diagonal(), pos)
+    }
 }
 
 impl<T: PartialEq> Grid<T> {
+    pub fn find(&self, needle: T) -> Option<IVec2> {
+        self.values
+            .iter()
+            .position(|p| *p == needle)
+            .map(|index| self.to_ivec(index))
+    }
+
     pub fn find_cursor(&mut self, cursor: T, swap_with: T) -> IVec2 {
         if let Some(cursor_pos) = self.values.iter().position(|p| *p == cursor) {
             self.values[cursor_pos] = swap_with;
