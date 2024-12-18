@@ -7,29 +7,29 @@
 
 use std::fmt::Display;
 
-const ADV: i64 = 0;
-const BXL: i64 = 1;
-const BST: i64 = 2;
-const JNZ: i64 = 3;
-const BXC: i64 = 4;
-const OUT: i64 = 5;
-const BDV: i64 = 6;
-const CDV: i64 = 7;
+const ADV: u32 = 0;
+const BXL: u32 = 1;
+const BST: u32 = 2;
+const JNZ: u32 = 3;
+const BXC: u32 = 4;
+const OUT: u32 = 5;
+const BDV: u32 = 6;
+const CDV: u32 = 7;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Cpu {
     pc: usize,
-    a: i64,
-    b: i64,
-    c: i64,
+    a: u32,
+    b: u32,
+    c: u32,
     halted: bool,
 }
 
 #[derive(Debug)]
 struct Device {
     cpu: Cpu,
-    instructions: Vec<i64>,
-    output: Vec<i64>,
+    instructions: Vec<u32>,
+    output: Vec<u32>,
 }
 
 fn parse(input: &str) -> Device {
@@ -43,7 +43,7 @@ fn parse(input: &str) -> Device {
         }
         match tokens[0] {
             "Register" => {
-                let operand: i64 = tokens[2].parse().expect("valid program");
+                let operand: u32 = tokens[2].parse().expect("valid program");
                 match tokens[1] {
                     "A:" => a = operand,
                     "B:" => b = operand,
@@ -57,7 +57,7 @@ fn parse(input: &str) -> Device {
                 // so delay interpretation to execution
                 instructions = tokens[1]
                     .split(',')
-                    .flat_map(|i| i.parse::<i64>())
+                    .flat_map(|i| i.parse::<u32>())
                     .collect();
             }
 
@@ -78,7 +78,7 @@ fn parse(input: &str) -> Device {
     }
 }
 
-fn format_combo(i: &i64) -> String {
+fn format_combo(i: &u32) -> String {
     match i {
         0..=3 => i.to_string(),
         4 => "A".to_string(),
@@ -88,9 +88,10 @@ fn format_combo(i: &i64) -> String {
         _ => "reserved".to_string(),
     }
 }
-fn format_instruction(inst: &[i64]) -> String {
+fn format_instruction(inst: &[u32]) -> String {
     let [opcode, operand, ..] = inst else {
-        panic!("invalid instructions {:?}", inst)
+        return "invalid".to_string();
+        //panic!("invalid instructions {:?}", inst)
     };
 
     match *opcode {
@@ -124,7 +125,7 @@ fn format_instruction(inst: &[i64]) -> String {
 
 impl Display for Cpu {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "A {}  B {}  C {}", self.a, self.b, self.c)?;
+        writeln!(f, "A {:#o}  B {:#o}  C {:#o}", self.a, self.b, self.c)?;
         writeln!(f, "PC: {:04} Halted: {}", self.pc, self.halted)
     }
 }
@@ -146,7 +147,7 @@ impl Display for Device {
     }
 }
 
-fn combo(cpu: &Cpu, operand: i64) -> i64 {
+fn combo(cpu: &Cpu, operand: u32) -> u32 {
     match operand {
         0..=3 => operand,
         4 => cpu.a,
@@ -156,7 +157,7 @@ fn combo(cpu: &Cpu, operand: i64) -> i64 {
         _ => unreachable!("reserved"),
     }
 }
-fn div(cpu: &Cpu, operand: i64) -> i64 {
+fn div(cpu: &Cpu, operand: u32) -> u32 {
     let c = combo(cpu, operand);
     // can never be 0
     let denominator = 1 << c;
@@ -164,7 +165,7 @@ fn div(cpu: &Cpu, operand: i64) -> i64 {
     cpu.a / denominator
 }
 
-fn execute(device: &Device) -> (Cpu, Option<i64>) {
+fn execute(device: &Device) -> (Cpu, Option<u32>) {
     let mut cpu = device.cpu.clone();
     let mut output = None;
 
@@ -173,7 +174,7 @@ fn execute(device: &Device) -> (Cpu, Option<i64>) {
     }
 
     let [opcode, operand, ..] = device.instructions[cpu.pc..] else {
-        panic!("invalid instructions")
+        panic!("invalid instructions in execute")
     };
 
     match opcode {
@@ -192,6 +193,8 @@ fn execute(device: &Device) -> (Cpu, Option<i64>) {
         JNZ => {
             if cpu.a != 0 {
                 cpu.pc = operand as usize
+            } else {
+                cpu.pc += 2;
             }
         }
         BXC => {
@@ -213,7 +216,7 @@ fn execute(device: &Device) -> (Cpu, Option<i64>) {
         _ => unreachable!("invalid instruction {opcode} {operand}"),
     }
 
-    if cpu.pc > device.instructions.len() {
+    if cpu.pc >= device.instructions.len() {
         cpu.halted = true;
     }
 
@@ -230,12 +233,12 @@ pub fn aoc_2024_17_a(input: &str) -> String {
     let mut ticks = 0;
     while !device.cpu.halted && ticks < 1000 {
         // get the instruction for output before executing it
-        // let inst = format_instruction(&device.instructions[device.cpu.pc..]);
-        // println!("{:05} s PC {} {}", ticks, device.cpu.pc, inst);
+        let inst = format_instruction(&device.instructions[device.cpu.pc..]);
+        println!("{:05} s PC {} {}", ticks, device.cpu.pc, inst);
 
         let (cpu, output) = execute(&device);
 
-        // println!("{}, {:?}", cpu, output);
+        println!("{}, {:?}", cpu, output);
 
         device.cpu = cpu;
         if output.is_some() {
@@ -255,27 +258,33 @@ pub fn aoc_2024_17_a(input: &str) -> String {
 }
 
 #[tracing::instrument]
-pub fn aoc_2024_17_b(input: &str) -> i64 {
+pub fn aoc_2024_17_b(input: &str) -> u32 {
     // find value for A so that output is copy of intructions
     // brute force is probably not a good idea
     // looks like a crypto algorithm with A is the key (enigma with a single or two rotors?)
     // how can we break the enigma?
     let org_device = parse(input);
 
-    for a in 1..1_000_000 {
+    for a in 1..u32::MAX {
         let mut device = Device {
             cpu: Cpu {
+                pc: 0,
                 a,
-                ..org_device.cpu
+                b: 0,
+                c: 0,
+                halted: false,
             },
             instructions: org_device.instructions.clone(),
             output: Vec::new(),
         };
-        let tick = 0;
-        while !device.cpu.halted && tick < 1_000_000 {
+        let mut ticks = 0;
+        while !device.cpu.halted && ticks < 100 {
             // get the instruction for output before executing it
             // let inst = format_instruction(&device.instructions[device.cpu.pc..]);
-            // println!("{:05} s PC {} {}", ticks, device.cpu.pc, inst);
+            // println!(
+            //     "{:05} s PC {} {} {}",
+            //     ticks, device.cpu.pc, device.cpu.halted, inst
+            // );
 
             let (cpu, output) = execute(&device);
 
@@ -291,10 +300,18 @@ pub fn aoc_2024_17_b(input: &str) -> i64 {
                     break;
                 }
             }
+            ticks += 1;
         }
+        if 0 == a % 10000 {
+            print!(". ");
+        }
+        if 0 == a % 250_000 {
+            println!();
+        }
+
         if device.output == device.instructions {
             println!("found! {device}");
-            return device.cpu.a;
+            return a;
         }
     }
     99
@@ -320,7 +337,7 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 117440)]
-    fn aoc_2024_17_b_example(#[case] input: &str, #[case] exepected: i64) {
+    fn aoc_2024_17_b_example(#[case] input: &str, #[case] exepected: u32) {
         assert_eq!(super::aoc_2024_17_b(input), exepected);
     }
 
@@ -329,10 +346,47 @@ mod tests {
         assert_eq!(super::aoc_2024_17_b(super::INPUT), 0);
     }
 
-    #[test]
-    fn slice_pattern() {
-        let [a, b, ..] = &[0, 1, 2, 3, 4, 5];
-        println!("{a}{b}")
+    #[rstest]
+    #[case(crate::INPUT, "6,2,7,2,3,1,6,0,5")]
+    fn algo_in_rust(#[case] input: &str, #[case] exepected: String) {
+        let device = super::parse(input);
+        println!("{device}");
+
+        // A 0o263240543  B 0o0  C 0o0
+        // PC: 0000 Halted: false
+
+        // reimplementation of input code in rust to make it more readable
+        let mut a = device.cpu.a;
+        let mut b: u32;
+        let mut c: u32;
+        let mut output = Vec::new();
+
+        // jnz 0
+        while a > 0 {
+            // bst A
+            b = a & 0b111;
+            //  bxl 3
+            b ^= 0b011;
+            //  cdv B
+            c = a / (1 << b);
+            //  bxl 5
+            b ^= 0b101;
+            //  adv 3
+            a = a / (1 << 3);
+            //  bxc
+            b ^= c;
+            //  out B
+            output.push(b & 0b111);
+        }
+        // todo: write an inverse
+
+        let result = output
+            .iter()
+            .map(|o| format!("{}", o))
+            .collect::<Vec<_>>()
+            .join(",");
+
+        assert_eq!(result, exepected);
     }
 
     const TEST_INPUT: &str = "
@@ -343,6 +397,7 @@ Register C: 0
 Program: 0,1,5,4,3,0";
 
     // What do we get if we take our output of a and execute it as a program?
+    #[allow(dead_code)]
     const TEST_INPUT_2: &str = "
 Register A: 729
 Register B: 0
