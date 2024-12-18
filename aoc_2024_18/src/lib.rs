@@ -7,6 +7,8 @@ use std::{
 /* Find the task under https://adventofcode.com/2024/day/18
     Solution idea:
     just temporal A*
+
+    The misunderstanding that the bytes will fall one by one WHILE we are going will cost a lot of time...
 */
 use aoc_utils::grid::Grid;
 use glam::{IVec2, IVec3};
@@ -42,7 +44,23 @@ impl Ord for Prio {
     }
 }
 
-fn a_star(end: IVec2, corrupted_after: HashMap<IVec2, i32>) -> usize {
+fn parse(input: &str) -> HashMap<IVec2, i32> {
+    input
+        .trim()
+        .lines()
+        .enumerate()
+        .flat_map(|(t, l)| {
+            l.split_once(",").map(|n| {
+                (
+                    IVec2::new(n.0.parse::<i32>().unwrap(), n.1.parse::<i32>().unwrap()),
+                    t as i32,
+                )
+            })
+        })
+        .collect::<HashMap<_, _>>()
+}
+
+fn a_star(end: IVec2, corrupted_after: &HashMap<IVec2, i32>, threshold: i32) -> usize {
     let mut grid = Grid::from_upper_bound(end, '.');
     let start = IVec3::ZERO;
 
@@ -53,6 +71,8 @@ fn a_star(end: IVec2, corrupted_after: HashMap<IVec2, i32>) -> usize {
     frontier.push(Prio::new(0, start));
     cost_so_far.insert(start, 0);
 
+    println!("{end} {threshold}");
+
     while let Some(Prio { priority: _, pos }) = frontier.pop() {
         // println!("{} [{:?}]", pos, cost_so_far.get(&pos));
         let pos2 = pos.truncate();
@@ -60,10 +80,10 @@ fn a_star(end: IVec2, corrupted_after: HashMap<IVec2, i32>) -> usize {
 
         // end reached, path must be minimal
         if pos2 == end {
-            let mut path = successors(Some(pos), |p| (p != &start).then(|| came_from[p]))
-                // we have to convert from Option<&IVec2> to Option<IVec>
-                //came_from.get(p).copied()) // runs endless. Why? start should yield None as there is no entry
-                .collect::<Vec<_>>();
+            println!("Frontier: {frontier:?}");
+
+            let mut path =
+                successors(Some(pos), |p| (p != &start).then(|| came_from[p])).collect::<Vec<_>>();
             path.reverse();
 
             for p in corrupted_after.keys() {
@@ -81,11 +101,15 @@ fn a_star(end: IVec2, corrupted_after: HashMap<IVec2, i32>) -> usize {
 
         for (next, _) in grid.iter_axis_neighbours_with_positions(pos2) {
             // is next a valid tile at time t+1?
-            if *corrupted_after.get(&next).unwrap_or(&i32::MAX) > t {
+            // Brrb. All bytes are already fallen at once before we start!
+            // but we use t as a threshold if it has been fallen this run.
+            if *corrupted_after.get(&next).unwrap_or(&i32::MAX) >= threshold {
                 let next3 = next.extend(t + 1);
                 let new_cost: i32 = *cost_so_far.get(&pos).unwrap_or(&0) + 1; // it always cost 1 to go to a neighbour
 
-                if !cost_so_far.contains_key(&next3) || cost_so_far[&next3] < new_cost {
+                if !cost_so_far.contains_key(&next3)
+                    || cost_so_far[&next3] < new_cost && (t as usize) < corrupted_after.len()
+                {
                     cost_so_far.insert(next3, new_cost);
 
                     // heuristic is simply manhattan distance in space. Ignore temporal distance or we will overestimate aka bad
@@ -100,32 +124,38 @@ fn a_star(end: IVec2, corrupted_after: HashMap<IVec2, i32>) -> usize {
             }
         }
     }
-    0
+    usize::MAX
 }
 
 #[tracing::instrument]
-pub fn aoc_2024_18_a(input: &str, end: IVec2, fallen: usize) -> usize {
-    let corrupted_after = input
-        .trim()
-        .lines()
-        .enumerate()
-        .flat_map(|(_t, l)| {
-            l.split_once(",").map(|n| {
-                (
-                    IVec2::new(n.0.parse::<i32>().unwrap(), n.1.parse::<i32>().unwrap()),
-                    0, //t as i32,
-                )
-            })
-        })
-        .take(fallen)
-        .collect::<HashMap<_, _>>();
+pub fn aoc_2024_18_a(input: &str, end: IVec2, fallen: i32) -> usize {
+    let corrupted_after = parse(input);
 
-    a_star(end, corrupted_after)
+    a_star(end, &corrupted_after, fallen)
 }
 
 #[tracing::instrument]
-pub fn aoc_2024_18_b(_input: &str) -> usize {
-    0
+pub fn aoc_2024_18_b(input: &str, end: IVec2, fallen: i32) -> String {
+    let corrupted_after = parse(input);
+
+    let mut threshold = fallen;
+    // Optimiize: binary search instead of linear
+
+    while threshold as usize <= corrupted_after.len()
+        && a_star(end, &corrupted_after, threshold) != usize::MAX
+    {
+        threshold += 1;
+        if 0 == threshold % 500 {
+            println!("{threshold}");
+        }
+    }
+
+    corrupted_after
+        .iter()
+        .filter(|(_p, t)| t == &&threshold)
+        .map(|(p, _)| p.to_string())
+        .next()
+        .unwrap()
 }
 
 pub const INPUT: &str = include_str!("input.txt");
@@ -140,7 +170,7 @@ mod tests {
     fn aoc_2024_18_a_example(
         #[case] input: &str,
         #[case] bounds: IVec2,
-        #[case] fallen: usize,
+        #[case] fallen: i32,
         #[case] exepected: usize,
     ) {
         assert_eq!(super::aoc_2024_18_a(input, bounds, fallen), exepected);
@@ -150,19 +180,27 @@ mod tests {
     fn aoc_2024_18_a() {
         assert_eq!(
             super::aoc_2024_18_a(super::INPUT, IVec2::new(70, 70), 1024),
-            0 // 141 < x < 311
+            306
         );
     }
 
     #[rstest]
-    #[case("X, X", 0)]
-    fn aoc_2024_18_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_18_b(input), exepected);
+    #[case(TEST_INPUT, IVec2::new(6, 6), 12, "6,1")]
+    fn aoc_2024_18_b_example(
+        #[case] input: &str,
+        #[case] bounds: IVec2,
+        #[case] fallen: i32,
+        #[case] exepected: String,
+    ) {
+        assert_eq!(super::aoc_2024_18_b(input, bounds, fallen), exepected);
     }
 
     #[test]
     fn aoc_2024_18_b() {
-        assert_eq!(super::aoc_2024_18_b(super::INPUT), 0);
+        assert_eq!(
+            super::aoc_2024_18_b(super::INPUT, IVec2::new(70, 70), 1024),
+            "0"
+        );
     }
 
     const TEST_INPUT: &str = "

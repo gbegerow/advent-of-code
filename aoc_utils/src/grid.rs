@@ -33,7 +33,7 @@ impl<T> Grid<T> {
             values,
             width,
             height,
-            cursor: IVec2::ZERO,
+            cursor: IVec2::MIN,
             lower_bound: IVec2::ZERO,
             upper_bound: IVec2::new(width as i32 - 1, height as i32 - 1),
         }
@@ -151,6 +151,22 @@ impl<T: PartialEq> Grid<T> {
         }
         // ignore not found for the moment. Maybe change to Result
         self.cursor
+    }
+}
+
+impl<T: Clone> Grid<T> {
+    pub fn from_upper_bound(upper_bound: IVec2, empty: T) -> Self {
+        let width: usize = (upper_bound.x + 1) as usize;
+        let height: usize = (upper_bound.y + 1) as usize;
+
+        Self {
+            values: vec![empty; width * height],
+            width,
+            height,
+            cursor: IVec2::MIN,
+            lower_bound: IVec2::ZERO,
+            upper_bound,
+        }
     }
 }
 
