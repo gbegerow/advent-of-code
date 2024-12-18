@@ -11,17 +11,17 @@ use std::{
     The misunderstanding that the bytes will fall one by one WHILE we are going will cost a lot of time...
 */
 use aoc_utils::grid::Grid;
-use glam::{IVec2, IVec3};
+use glam::IVec2;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct Prio {
     priority: i32,
     // temporal coordinates
-    pos: IVec3,
+    pos: IVec2,
 }
 
 impl Prio {
-    fn new(priority: i32, pos: IVec3) -> Self {
+    fn new(priority: i32, pos: IVec2) -> Self {
         Self { priority, pos }
     }
 }
@@ -38,7 +38,7 @@ impl Ord for Prio {
         other
             .priority
             .cmp(&self.priority)
-            .then(self.pos.z.cmp(&other.pos.z)) // time
+            // .then(self.pos.z.cmp(&other.pos.z)) // time
             .then(self.pos.x.cmp(&other.pos.x))
             .then(self.pos.y.cmp(&other.pos.y))
     }
@@ -62,64 +62,68 @@ fn parse(input: &str) -> HashMap<IVec2, i32> {
 
 fn a_star(end: IVec2, corrupted_after: &HashMap<IVec2, i32>, threshold: i32) -> usize {
     let mut grid = Grid::from_upper_bound(end, '.');
-    let start = IVec3::ZERO;
+    let start = IVec2::ZERO;
 
     let mut frontier = BinaryHeap::new();
-    let mut came_from: HashMap<IVec3, IVec3> = HashMap::new();
-    let mut cost_so_far: HashMap<IVec3, i32> = HashMap::new();
+    let mut came_from: HashMap<IVec2, IVec2> = HashMap::new();
+    let mut cost_so_far: HashMap<IVec2, i32> = HashMap::new();
 
     frontier.push(Prio::new(0, start));
     cost_so_far.insert(start, 0);
 
-    println!("{end} {threshold}");
+    // println!("{end} {threshold}");
 
     while let Some(Prio { priority: _, pos }) = frontier.pop() {
-        // println!("{} [{:?}]", pos, cost_so_far.get(&pos));
-        let pos2 = pos.truncate();
-        let t = pos.z;
+        // println!(
+        //     "{} [{:?}] frontier {}",
+        //     pos,
+        //     cost_so_far.get(&pos),
+        //     frontier.len()
+        // );
 
         // end reached, path must be minimal
-        if pos2 == end {
-            println!("Frontier: {frontier:?}");
+        if pos == end {
+            // println!("came_from: {came_from:?}");
+            // println!("Frontier: {frontier:?}");
 
             let mut path =
                 successors(Some(pos), |p| (p != &start).then(|| came_from[p])).collect::<Vec<_>>();
             path.reverse();
 
-            for p in corrupted_after.keys() {
-                grid[*p] = '#';
-            }
-            for p in &path {
-                grid[p.truncate()] = char::from_digit(p.z as u32 % 10, 10).expect("digit?");
-                // 'O';
-            }
+            // for p in corrupted_after
+            //     .iter()
+            //     .filter(|(_p, t)| **t < threshold)
+            //     .map(|(p, _t)| p)
+            // {
+            //     grid[*p] = '#';
+            // }
+            // for p in &path {
+            //     grid[*p] = 'O'; //char::from_digit(p.z as u32 % 10, 10).expect("digit?");
+            // }
 
-            println!("{grid:#}");
+            // println!("{grid:#}");
 
             return path.len() - 1; // a step costs 1 so no need to calculate cost, but steps not tiles
         }
 
-        for (next, _) in grid.iter_axis_neighbours_with_positions(pos2) {
+        for (next, _) in grid.iter_axis_neighbours_with_positions(pos) {
             // is next a valid tile at time t+1?
             // Brrb. All bytes are already fallen at once before we start!
             // but we use t as a threshold if it has been fallen this run.
             if *corrupted_after.get(&next).unwrap_or(&i32::MAX) >= threshold {
-                let next3 = next.extend(t + 1);
                 let new_cost: i32 = *cost_so_far.get(&pos).unwrap_or(&0) + 1; // it always cost 1 to go to a neighbour
 
-                if !cost_so_far.contains_key(&next3)
-                    || cost_so_far[&next3] < new_cost && (t as usize) < corrupted_after.len()
-                {
-                    cost_so_far.insert(next3, new_cost);
+                if !cost_so_far.contains_key(&next) || new_cost < cost_so_far[&next] {
+                    cost_so_far.insert(next, new_cost);
 
                     // heuristic is simply manhattan distance in space. Ignore temporal distance or we will overestimate aka bad
                     let priority = new_cost + (end.x - next.x + end.y - next.y);
                     frontier.push(Prio {
                         priority,
-                        pos: next3,
+                        pos: next,
                     });
 
-                    came_from.insert(next3, pos);
+                    came_from.insert(next, pos);
                 }
             }
         }
@@ -140,6 +144,7 @@ pub fn aoc_2024_18_b(input: &str, end: IVec2, fallen: i32) -> String {
 
     let mut threshold = fallen;
     // Optimiize: binary search instead of linear
+    // let range = fallen..( corrupted_after.len)() as i32);
 
     while threshold as usize <= corrupted_after.len()
         && a_star(end, &corrupted_after, threshold) != usize::MAX
@@ -152,8 +157,8 @@ pub fn aoc_2024_18_b(input: &str, end: IVec2, fallen: i32) -> String {
 
     corrupted_after
         .iter()
-        .filter(|(_p, t)| t == &&threshold)
-        .map(|(p, _)| p.to_string())
+        .filter(|(_p, t)| **t == threshold - 1)
+        .map(|(p, _)| format!("{},{}", p.x, p.y))
         .next()
         .unwrap()
 }
@@ -199,7 +204,7 @@ mod tests {
     fn aoc_2024_18_b() {
         assert_eq!(
             super::aoc_2024_18_b(super::INPUT, IVec2::new(70, 70), 1024),
-            "0"
+            "38,63"
         );
     }
 

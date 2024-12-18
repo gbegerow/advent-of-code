@@ -466,3 +466,126 @@ fn occupies(p: i32, start: i32, t: i32, width: i32) -> bool {
     }
 }
  */
+
+
+ /* TODO: adapt this temporal a_star from the 2024_18 misunderstanding
+ use aoc_utils::grid::Grid;
+use glam::{IVec2, IVec3};
+
+#[derive(Debug, Eq, PartialEq, Clone)]
+struct Prio {
+    priority: i32,
+    // temporal coordinates
+    pos: IVec3,
+}
+
+impl Prio {
+    fn new(priority: i32, pos: IVec3) -> Self {
+        Self { priority, pos }
+    }
+}
+
+impl PartialOrd for Prio {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Prio {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        // min heap wanted
+        other
+            .priority
+            .cmp(&self.priority)
+            .then(self.pos.z.cmp(&other.pos.z)) // time
+            .then(self.pos.x.cmp(&other.pos.x))
+            .then(self.pos.y.cmp(&other.pos.y))
+    }
+}
+
+fn parse(input: &str) -> HashMap<IVec2, i32> {
+    input
+        .trim()
+        .lines()
+        .enumerate()
+        .flat_map(|(t, l)| {
+            l.split_once(",").map(|n| {
+                (
+                    IVec2::new(n.0.parse::<i32>().unwrap(), n.1.parse::<i32>().unwrap()),
+                    t as i32,
+                )
+            })
+        })
+        .collect::<HashMap<_, _>>()
+}
+
+fn a_star(end: IVec2, corrupted_after: &HashMap<IVec2, i32>, threshold: i32) -> usize {
+    let mut grid = Grid::from_upper_bound(end, '.');
+    let start = IVec3::ZERO;
+
+    let mut frontier = BinaryHeap::new();
+    let mut came_from: HashMap<IVec3, IVec3> = HashMap::new();
+    let mut cost_so_far: HashMap<IVec3, i32> = HashMap::new();
+
+    frontier.push(Prio::new(0, start));
+    cost_so_far.insert(start, 0);
+
+    println!("{end} {threshold}");
+
+    while let Some(Prio { priority: _, pos }) = frontier.pop() {
+        // println!("{} [{:?}]", pos, cost_so_far.get(&pos));
+        let pos2 = pos.truncate();
+        let t = pos.z;
+
+        // end reached, path must be minimal
+        if pos2 == end {
+            println!("Frontier: {frontier:?}");
+
+            let mut path =
+                successors(Some(pos), |p| (p != &start).then(|| came_from[p])).collect::<Vec<_>>();
+            path.reverse();
+
+            for p in corrupted_after.keys() {
+                grid[*p] = '#';
+            }
+            for p in &path {
+                grid[p.truncate()] = char::from_digit(p.z as u32 % 10, 10).expect("digit?");
+                // 'O';
+            }
+
+            println!("{grid:#}");
+
+            return path.len() - 1; // a step costs 1 so no need to calculate cost, but steps not tiles
+        }
+
+        for (next, _) in grid.iter_axis_neighbours_with_positions(pos2) {
+            // is next a valid tile at time t+1?
+            // Brrb. All bytes are already fallen at once before we start!
+            // but we use t as a threshold if it has been fallen this run.
+            if *corrupted_after.get(&next).unwrap_or(&i32::MAX) >= threshold {
+                let next3 = next.extend(t + 1);
+                let new_cost: i32 = *cost_so_far.get(&pos).unwrap_or(&0) + 1; // it always cost 1 to go to a neighbour
+
+                if !cost_so_far.contains_key(&next3)
+                    || cost_so_far[&next3] < new_cost && (t as usize) < corrupted_after.len()
+                {
+                    cost_so_far.insert(next3, new_cost);
+
+                    // heuristic is simply manhattan distance in space. Ignore temporal distance or we will overestimate aka bad
+                    let priority = new_cost + (end.x - next.x + end.y - next.y);
+                    frontier.push(Prio {
+                        priority,
+                        pos: next3,
+                    });
+
+                    came_from.insert(next3, pos);
+                }
+            }
+        }
+    }
+    usize::MAX
+}
+
+ 
+ 
+ */
