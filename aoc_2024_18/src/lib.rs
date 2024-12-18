@@ -117,7 +117,7 @@ fn a_star(end: IVec2, corrupted_after: &HashMap<IVec2, i32>, threshold: i32) -> 
                     cost_so_far.insert(next, new_cost);
 
                     // heuristic is simply manhattan distance in space. Ignore temporal distance or we will overestimate aka bad
-                    let priority = new_cost + (end.x - next.x + end.y - next.y);
+                    let priority = new_cost + (end.x - next.x).abs() + (end.y - next.y).abs();
                     frontier.push(Prio {
                         priority,
                         pos: next,
@@ -142,7 +142,7 @@ pub fn aoc_2024_18_a(input: &str, end: IVec2, fallen: i32) -> usize {
 pub fn aoc_2024_18_b(input: &str, end: IVec2, fallen: i32) -> String {
     let corrupted_after = parse(input);
 
-    // Optimiize: binary search instead of linear
+    // Optimize: binary search instead of linear
     let mut range = fallen..(1 + corrupted_after.len() as i32);
     let mut threshold: i32;
     // we can come from both directions to the border,
