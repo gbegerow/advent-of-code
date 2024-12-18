@@ -61,7 +61,7 @@ fn parse(input: &str) -> HashMap<IVec2, i32> {
 }
 
 fn a_star(end: IVec2, corrupted_after: &HashMap<IVec2, i32>, threshold: i32) -> usize {
-    let mut grid = Grid::from_upper_bound(end, '.');
+    let grid = Grid::from_upper_bound(end, '.');
     let start = IVec2::ZERO;
 
     let mut frontier = BinaryHeap::new();
@@ -142,22 +142,32 @@ pub fn aoc_2024_18_a(input: &str, end: IVec2, fallen: i32) -> usize {
 pub fn aoc_2024_18_b(input: &str, end: IVec2, fallen: i32) -> String {
     let corrupted_after = parse(input);
 
-    let mut threshold = fallen;
     // Optimiize: binary search instead of linear
-    // let range = fallen..( corrupted_after.len)() as i32);
+    let mut range = fallen..(1 + corrupted_after.len() as i32);
+    let mut threshold: i32;
+    // we can come from both directions to the border,
+    // so remeber the lowest threshhold without path
+    let mut not_found_min = range.end;
 
-    while threshold as usize <= corrupted_after.len()
-        && a_star(end, &corrupted_after, threshold) != usize::MAX
-    {
-        threshold += 1;
-        if 0 == threshold % 500 {
-            println!("{threshold}");
+    // find first run that returns usize::MAX for no path found
+    while !range.is_empty() {
+        threshold = range.start + (range.end - range.start) / 2;
+
+        if a_star(end, &corrupted_after, threshold) == usize::MAX {
+            range = range.start..threshold;
+            not_found_min = not_found_min.min(threshold);
+        } else {
+            range = (threshold + 1)..range.end;
         }
     }
+    // println!(
+    //     "range: {:?} threshold: {} min: {}",
+    //     range, threshold, not_found_min
+    // );
 
     corrupted_after
         .iter()
-        .filter(|(_p, t)| **t == threshold - 1)
+        .filter(|(_p, t)| **t == not_found_min - 1)
         .map(|(p, _)| format!("{},{}", p.x, p.y))
         .next()
         .unwrap()
