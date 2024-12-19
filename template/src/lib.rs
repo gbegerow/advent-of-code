@@ -38,7 +38,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case("X, X", 0)]
+    #[case(TEST_INPUT, 0)]
     fn part_b_example(#[case] input: &str, #[case] exepected: usize) {
         assert_eq!(super::aoc_2016_01_b(input), exepected);
     }
@@ -49,4 +49,7 @@ mod tests {
     }
 
     const TEST_INPUT: &str = "";
+
+    #[allow(dead_code)]
+    const TEST_INPUT_2: &str = "";
 }

@@ -16,8 +16,8 @@ ratatui = "0.29.0"
 memoize = "0.4.2"
 petgraph = "0.6.5"
 bevy = "0.15"
-bevy_panorbit_camera = "0.20.1"
-bevy_ecs_tilemap = "0.14.0"
+bevy_panorbit_camera = "0.21.1"
+bevy_ecs_tilemap = "0.15.0"
 #fxhash = "0.2.1"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["fmt", "env-filter"] }
@@ -30,7 +30,7 @@ tracing-tracy = "0.11.3"
 tracy-client = "0.17.4"
 tracy-client-sys = "0.24.0"
 miette = { version = "7.4.0", features = ["fancy"] }
-thiserror = "2.0.3"
+thiserror = "2.0.8"
 dhat = "0.3.2"
 
 # Enable a small amount of optimization in debug mode
