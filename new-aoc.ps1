@@ -20,18 +20,18 @@ if (-not (Test-Path $folder)) {
 
     "modify local cargo.toml"
     $toml = switch -Regex -File ".\cargo.toml" {
-        'aoc_\d+_\d+' { 
-            $_ -replace 'aoc_\d+_\d+', $folder; # we already matched it, is there a way to not match twice for replace?
+
+        '^\s*name\s*=\s*"aoc_{year}_{day}_(.)"' { 
+            'name = "aoc_{0}_{1}_{2}"' -f $year, $day, $Matches.1
         }
-        
-        # '^\s*name\s*=\s*"aoc_{year}_{day}_(.)"' { 
-        #     'name = "aoc_{0}_{1}_{2}"' -f $year, $day, $Matches.1
-        # }
 
         '^\s*name = "advent-of-code"' { 
             'name = "{0}"' -f $folder
         }
 
+        'aoc_\d+_\d+' { 
+            $_ -replace 'aoc_\d+_\d+', $folder; # we already matched it, is there a way to not match twice for replace?
+        }
         Default { $_ }
     } 
     $toml | Set-Content ".\cargo.toml" -Force
@@ -39,22 +39,23 @@ if (-not (Test-Path $folder)) {
     # modify lib.rs to have better names for test (maybe go the full way and simply replace all occurences?)
     "modify lib.rs"
     $lib = switch -Regex -File ".\src\lib.rs" {
-        'aoc_\d+_\d+' { 
-            $_ -replace 'aoc_\d+_\d+', $folder; # we already matched it, is there a way to not match twice for replace?
+
+        '^(.*)fn (part|aoc_\d+_\d+)_(.+)$' { 
+            '{2}fn {0}_{1}' -f $folder, $Matches.3, $Matches.1
         }
         
-        # '^(.*)fn (part|aoc_\d+_\d+)_(.+)$' { 
-        #     '{2}fn {0}_{1}' -f $folder, $Matches.3, $Matches.1
-        # }
-        
-        # '^(.*)assert_eq!\(super::(part|aoc_\d+_\d+)_(.+)$' {
-        #     '{2}assert_eq!(super::{0}_{1}' -f $folder, $Matches.3, $Matches.1
-        # }
+        '^(.*)assert_eq!\(super::(part|aoc_\d+_\d+)_(.+)$' {
+            '{2}assert_eq!(super::{0}_{1}' -f $folder, $Matches.3, $Matches.1
+        }
         
         '^(.*)(https://adventofcode.com/\d+/day/\d+)(.*)$' {
             '{2}https://adventofcode.com/{0}/day/{1:00}{3}' -f $year, $day, $Matches.1, $Matches.3
         }
-     
+
+        'aoc_\d+_\d+' { 
+            $_ -replace 'aoc_\d+_\d+', $folder; # we already matched it, is there a way to not match twice for replace?
+        }
+        
         Default { $_ }
     } 
     $lib | Set-Content ".\src\lib.rs" -Force

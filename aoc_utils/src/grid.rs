@@ -10,7 +10,6 @@ use std::{
     fmt::Display,
     ops::{Index, IndexMut},
     str::FromStr,
-    string::ParseError,
 };
 
 #[derive(Clone, PartialEq, Eq)]
@@ -40,6 +39,15 @@ impl<T> Grid<T> {
     }
 
     #[inline(always)]
+    pub fn len(&self) -> usize {
+        self.values.len()
+    }
+    #[inline(always)]
+    pub fn is_empty(&self) -> bool {
+        self.values.is_empty()
+    }
+
+    #[inline(always)]
     pub fn to_index(&self, index: IVec2) -> Option<usize> {
         if index.x < 0
             || index.y < 0
@@ -60,6 +68,14 @@ impl<T> Grid<T> {
 
     pub fn iter(&self) -> impl Iterator<Item = &T> + '_ {
         self.values.iter()
+    }
+
+    pub fn get(&self, pos: IVec2) -> Option<&T> {
+        self.to_index(pos).map(|i| self.values.get(i))?
+    }
+
+    pub fn get_mut(&mut self, pos: IVec2) -> Option<&mut T> {
+        self.to_index(pos).map(|i| self.values.get_mut(i))?
     }
 
     pub fn iter_with_positions(&self) -> impl Iterator<Item = (IVec2, &T)> + '_ {
@@ -152,6 +168,41 @@ impl<T: PartialEq> Grid<T> {
         // ignore not found for the moment. Maybe change to Result
         self.cursor
     }
+
+    /// moves cursor if predicate returns true.
+    /// predicate receives the new position and, if this position is inside bounds,
+    /// the content of the tile of position. Otherwise None.
+    /// if cursor was set, the tiles content is returnd otherwise None
+    pub fn move_cursor_if(
+        &mut self,
+        direction: IVec2,
+        predicate: fn(IVec2, Option<&T>) -> bool,
+    ) -> Option<&T> {
+        let new_pos = self.cursor + direction;
+        let tile = self.to_index(new_pos).map(|i| &self.values[i]);
+        if predicate(new_pos, tile) {
+            self.cursor = new_pos;
+            tile
+        } else {
+            None
+        }
+    }
+
+    /// try to move cursor in direction, returns None if cursor would leave grid
+    /// otherwise return tile under cursor
+    pub fn move_cursor(&mut self, direction: IVec2) -> Option<&T> {
+        // if cursor is in valid spot after move, set it
+        match self
+            .to_index(self.cursor + direction)
+            .map(|i| &self.values[i])
+        {
+            Some(v) => {
+                self.cursor += direction;
+                Some(v)
+            }
+            None => None,
+        }
+    }
 }
 
 impl<T: Clone> Grid<T> {
@@ -234,19 +285,35 @@ fn get_knights_moves() -> Vec<IVec2> {
     todo!("Knights moves")
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseGridError;
+
 impl<T> FromStr for Grid<T>
 where
-    Vec<T>: FromIterator<char>,
+    T: TryFrom<char>,
 {
-    type Err = ParseError;
+    type Err = ParseGridError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim();
-        let width = s.lines().next().unwrap().trim().chars().count();
+        if s.is_empty() {
+            return Err(ParseGridError);
+        }
+        let width = s
+            .lines()
+            .next()
+            .expect("at least one line")
+            .trim()
+            .chars()
+            .count();
         let height = s.lines().count();
 
         // use lines, we want to trim any line individually
-        let values: Vec<T> = s.lines().flat_map(|x| x.trim().chars()).collect();
+        let values: Vec<T> = s
+            .lines()
+            .flat_map(|x| x.trim().chars())
+            .flat_map(|c| c.try_into())
+            .collect();
 
         Ok(Grid {
             values,

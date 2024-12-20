@@ -16,12 +16,11 @@
 
 use std::{
     collections::{BinaryHeap, HashMap},
-    env::consts::EXE_EXTENSION,
     iter::successors,
 };
 
 // #[allow(dead_code)]
-use aoc_utils::grid::{self, Grid};
+use aoc_utils::grid::Grid;
 use glam::{IVec2, IVec3};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -248,7 +247,6 @@ fn occupies(p: i32, start: i32, t: i32, width: i32) -> bool {
 
 
 */
-
 
 #[allow(dead_code, unused_variables)]
 pub fn aoc_2022_24_a(input: &str) -> usize {
