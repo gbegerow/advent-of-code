@@ -3,7 +3,7 @@
     Solution idea:
 
 */
-use aoc_utils::grid::{Grid, EAST, NORTH, SOUTH, WEST};
+use aoc_utils::grid::Grid;
 use glam::IVec2;
 use std::{collections::VecDeque, fmt::Display};
 
@@ -89,10 +89,8 @@ impl From<Tile> for char {
     }
 }
 
-
-
 #[tracing::instrument]
-pub fn find_cheats(input: &str, WALL_HACK_LEN: i32, threshold: i32) -> usize {
+pub fn find_cheats(input: &str, wall_hack_len: i32, threshold: i32) -> usize {
     let mut grid = input.parse::<Grid<Tile>>().expect("valid grid");
     let start = grid
         .find('S'.try_into().unwrap())
@@ -116,29 +114,18 @@ pub fn find_cheats(input: &str, WALL_HACK_LEN: i32, threshold: i32) -> usize {
         // paths starting and ending on same tiles are only counted once.
         // So candidates are all path tiles in WALL_HACK_LEN radius around cursor
         // distance is Manhattan distance
-        // test if part a  stays same with possible 90° turn
+        // test if part a  stays same with possible 90° turn. yes
 
-        for dir in [NORTH, EAST, SOUTH, WEST] {
-            let scan_line = (0..WALL_HACK_LEN)
-                .flat_map(|i| grid.get(cursor + i * dir).map(|t| char::from(t.clone())))
-                .collect::<String>();
-            // a cheat must start at a wall
-            if !scan_line.starts_with(".#") {
-                continue;
-            }
-
-            // println!("From {} -> {}: {}", at + 1, dir, scan_line);
-            // it is a valid cheat if there is a wall followed by an empty space or end
-            // scanline = ".#.|.##.|.#E|.##E"
-            if let Some(pos) = scan_line.find("#E") {
-                // AoC uses ASCII so pos is a valid position
-                // println!("Shortcut to end from {}", at + 1);
-                // end tile after wall
-                cheats.push(cursor + (pos as i32 + 1) * dir);
-            } else if let Some(pos) = scan_line.find("#.") {
-                // AoC uses ASCII so pos is a valid position
-                // first path tile after wall
-                cheats.push(cursor + (pos as i32 + 1) * dir);
+        // iterate over all path tiles with manhattan distance <= WALL_HACK_LEN
+        for dx in -wall_hack_len..=wall_hack_len {
+            for dy in -wall_hack_len..=wall_hack_len {
+                if dx.abs() + dy.abs() > wall_hack_len {
+                    continue;
+                }
+                let pos = cursor + IVec2::new(dx, dy);
+                if let Some(Tile::Path(_p)) = grid.get(pos) {
+                    cheats.push(pos);
+                }
             }
         }
 
@@ -148,7 +135,7 @@ pub fn find_cheats(input: &str, WALL_HACK_LEN: i32, threshold: i32) -> usize {
                 panic!("suffocating in wall.");
             };
 
-            // bookkeepiing
+            // bookkeeping
             at += 1;
             assert_eq!(tile.id, 0, "tile visited multiple times");
             assert!(!tile.visited, "tile visited multiple times");
@@ -169,35 +156,38 @@ pub fn find_cheats(input: &str, WALL_HACK_LEN: i32, threshold: i32) -> usize {
         }
     }
 
-    println!("Last id: {at}");
+    // println!("Last id: {at}");
     println!("{grid:#}");
 
-    // Now we know all possible cheats, get the distances
+    // Now we know all possible cheats and every pathtile has its id, get the distances
     let cheat_candidates = grid
-        .iter()
-        .flat_map(|tile| match tile {
-            Tile::Path(path_tile) if !path_tile.cheats.is_empty() => Some(path_tile.clone()),
+        .iter_with_positions()
+        .flat_map(|(pos, tile)| match tile {
+            Tile::Path(path_tile) if !path_tile.cheats.is_empty() => Some((pos, path_tile.clone())),
             _ => None,
         })
         // .inspect(|tile| println!("{tile:?}"))
         // map cheats to distance
-        .flat_map(|tile| {
+        .flat_map(|(pos, tile)| {
             tile.cheats
                 .iter()
                 .flat_map(|c| match &grid[*c] {
                     Tile::Wall => panic!("cheat should end on path tile"),
                     // only cheats from early to late are shortcuts
                     Tile::Path(path_tile) if path_tile.id > tile.id => {
-                        // println!(
-                        //     "Cheat from {}'{}' -> {}'{}' ({})",
-                        //     tile.id,
-                        //     tile.display,
-                        //     path_tile.id,
-                        //     path_tile.display,
-                        //     path_tile.id - tile.id
-                        // );
-                        // we visit path on both sides of the cheat
-                        Some(path_tile.id - tile.id - 2)
+                        // we moved the  manhattan distance through the wall
+                        //so we need to substract manhattan distance from logical distance
+                        let logical_distance = path_tile.id - tile.id;
+                        let manhattan_distance = (c.x - pos.x).abs() + (c.y - pos.y).abs();
+                        let distance = logical_distance - manhattan_distance;
+
+                        // if path_tile.display == 'E' {
+                        //     println!(
+                        //         "Cheat from {}'{}' -> {}'{}' ({})",
+                        //         tile.id, tile.display, path_tile.id, path_tile.display, distance
+                        //     );
+                        // }
+                        Some(distance)
                     }
                     // cheat ends on unvisited pathtile or leads back, useless
                     _ => None,
@@ -207,15 +197,23 @@ pub fn find_cheats(input: &str, WALL_HACK_LEN: i32, threshold: i32) -> usize {
         .collect::<Vec<_>>();
     // println!("{cheat_candidates:?}");
 
-    cheat_candidates.iter().filter(|d| d >= &&threshold).count()
+    let threshold_filter = cheat_candidates
+        .iter()
+        .filter(|d| d >= &&threshold)
+        .collect::<Vec<_>>();
+    // println!("{:?}", threshold_filter);
+
+    threshold_filter.len()
 }
 
+#[tracing::instrument]
 pub fn aoc_2024_20_a(input: &str, threshold: i32) -> usize {
-find_cheats(input,2+2, threshold)
+    find_cheats(input, 2, threshold)
+}
 
 #[tracing::instrument]
-pub fn aoc_2024_20_b(input: &str,threshold: i32) -> usize {
-    find_cheats(input, 20+2, threshold)
+pub fn aoc_2024_20_b(input: &str, threshold: i32) -> usize {
+    find_cheats(input, 20, threshold)
 }
 
 pub const INPUT: &str = include_str!("input.txt");
@@ -236,14 +234,20 @@ mod tests {
     }
 
     #[rstest]
-    #[case(TEST_INPUT, 0)]
-    fn aoc_2024_20_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_20_b(input, 50), exepected);
+    #[case(TEST_INPUT, 76, 3)]
+    #[case(TEST_INPUT, 70, 12+ 22+ 4 + 3)]
+    #[case(TEST_INPUT, 50, 32+ 31+ 29+ 39+ 25+ 23+ 20+ 19+ 12+ 14+ 12+ 22+ 4 + 3)]
+    fn aoc_2024_20_b_example(
+        #[case] input: &str,
+        #[case] threshold: i32,
+        #[case] exepected: usize,
+    ) {
+        assert_eq!(super::aoc_2024_20_b(input, threshold), exepected);
     }
 
     #[test]
     fn aoc_2024_20_b() {
-        assert_eq!(super::aoc_2024_20_b(super::INPUT, 100), 0);
+        assert_eq!(super::aoc_2024_20_b(super::INPUT, 100), 977747);
     }
 
     const TEST_INPUT: &str = "
