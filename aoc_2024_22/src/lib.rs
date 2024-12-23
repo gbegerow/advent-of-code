@@ -4,18 +4,20 @@
 
 */
 
-const RNG_MOD: u32 = 16777216; // 2^24
-const RNG_RANG: u32 = RNG_MOD - 1;
-const CYCLES: u32 = 2000;
+use std::collections::{HashMap, HashSet, VecDeque};
+
+const RNG_MOD: i64 = 16777216; // 2^24
+const RNG_RANG: i64 = RNG_MOD - 1;
+const CYCLES: i64 = 2000;
 
 struct AocRng {
     #[allow(dead_code)]
-    seed: u32,
-    current: u32,
+    seed: i64,
+    current: i64,
 }
 
 impl AocRng {
-    fn new(seed: u32) -> Self {
+    fn new(seed: i64) -> Self {
         Self {
             seed,
             current: seed,
@@ -23,7 +25,7 @@ impl AocRng {
     }
 }
 impl Iterator for AocRng {
-    type Item = u32;
+    type Item = i64;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.current = (self.current ^ (self.current << 6)) & RNG_RANG; // * 64
@@ -34,7 +36,7 @@ impl Iterator for AocRng {
     }
 }
 
-fn cycle(seed: u32, cycles: u32) -> u32 {
+fn cycle(seed: i64, cycles: i64) -> i64 {
     let mut rng = AocRng::new(seed);
 
     for _ in 0..cycles - 1 {
@@ -43,21 +45,177 @@ fn cycle(seed: u32, cycles: u32) -> u32 {
     rng.next().unwrap()
 }
 
+#[inline(always)]
+fn price(secret: i64) -> i64 {
+    secret % 10
+}
+
+struct RngDiff {
+    rng: AocRng,
+    price: i64,
+}
+
+impl Iterator for RngDiff {
+    type Item = i64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let c = price(self.rng.current);
+        let n = price(self.rng.next().unwrap());
+        let d = n - c;
+
+        self.price = n;
+        Some(d)
+    }
+}
+
+impl RngDiff {
+    fn new(seed: i64) -> Self {
+        Self {
+            rng: AocRng::new(seed),
+            price: price(seed),
+        }
+    }
+}
+
+fn price_by_sequence(seed: i64, sequence: &[i64; 4]) -> i64 {
+    let gen = &mut RngDiff::new(seed);
+
+    let mut i = 4;
+    let mut window = VecDeque::from_iter(gen.take(4));
+
+    while i < CYCLES {
+        i += 1;
+        if window == sequence {
+            return gen.price;
+        }
+
+        window.pop_front();
+        window.push_back(gen.next().unwrap());
+    }
+    0
+}
+
+fn sequence(i: i64) -> [i64; 4] {
+    // treat number as base 19
+    const BASE: i64 = 19;
+    const OFFSET: i64 = 9;
+    [
+        ((i / (BASE * BASE * BASE)) % BASE) - OFFSET,
+        ((i / (BASE * BASE)) % BASE) - OFFSET,
+        ((i / (BASE)) % BASE) - OFFSET,
+        ((i) % BASE) - OFFSET,
+    ]
+}
+
 #[tracing::instrument]
-pub fn aoc_2024_22_a(input: &str) -> u64 {
+pub fn aoc_2024_22_a(input: &str) -> i64 {
     let x = input
         .trim()
         .lines()
-        .flat_map(|l| l.parse::<u32>())
-        .map(|seed| cycle(seed, CYCLES) as u64)
+        .flat_map(|l| l.parse::<i64>())
+        .map(|seed| cycle(seed, CYCLES) as i64)
         // .inspect(|c| println!(" [{}] [{:024b}] ", c, c))
         .sum();
     x
 }
 
+pub fn brute_force_all_sequences(seeds: Vec<i64>) -> i64 {
+    // alternative: brute force by generating the sequences.
+    // seqences go from [-9,-9,-9,-9] to [9,9,9,9] => 0 .. 20^4 = 160_000 tries
+    let mut max = i64::MIN;
+    let mut max_seq: [i64; 4] = [-9, -9, -9, -9];
+    let base = 19; // 19, not 20
+    for i in 0..base * base * base * base {
+        let sequence = sequence(i);
+
+        let p = seeds
+            .iter()
+            .map(|seed| price_by_sequence(*seed, &sequence))
+            .sum();
+
+        if p > max {
+            max = p;
+            max_seq = sequence;
+        }
+    }
+    println!("{max} {max_seq:?}");
+    max
+}
+
+pub fn record(seeds: Vec<i64>) -> i64 {
+    // record every first occurence of a sequence and sum the price per sequence in a HashMap
+    let mut record = HashMap::with_capacity(seeds.len() * CYCLES as usize); // can't have more different sequences than possible sequences
+
+    for seed in seeds {
+        let mut seen = HashSet::with_capacity(CYCLES as usize);
+        let gen = &mut RngDiff::new(seed);
+
+        let mut i = 4;
+        let mut window = VecDeque::from_iter(gen.take(4));
+
+        while i < CYCLES {
+            // we always stop at first encounter
+            // can we break if we see a sequence the second time?
+            if seen.contains(&window) {
+                continue;
+            }
+
+            // would it be better to convert the sequence to a number first? (inverse of sequence)
+            // probably less memory but more runtime. Benchmark it.
+            seen.insert(window.clone());
+            record
+                .entry(window.clone())
+                .and_modify(|sum| *sum *= gen.price)
+                .or_insert(gen.price);
+
+            i += 1;
+
+            // is there a better way in stable rust without itertools for a sliding window?
+            // would using a [i64;4] better? Benchmark it
+            // window = [window[0..3], gen.next().unwrap()] or mem::copy
+            // or just w[0]=w[1]; ... w[3]= gen.next
+            // or window = [w[1], w[2], w[3], gen.next]
+            window.pop_front();
+            window.push_back(gen.next().unwrap());
+        }
+    }
+
+    let Some((max_seq, max)) = record.iter().max_by_key(|x| x.1) else {
+        unreachable!("No maximium!?")
+    };
+    println!("{max} {max_seq:?}");
+    *max
+}
+
+fn parse(input: &str) -> Vec<i64> {
+    input
+        .trim()
+        .lines()
+        .flat_map(|l| l.parse::<i64>())
+        .collect::<Vec<_>>()
+}
+
 #[tracing::instrument]
-pub fn aoc_2024_22_b(_input: &str) -> u32 {
-    0
+pub fn aoc_2024_22_b(input: &str) -> i64 {
+    // maximize sum of prices
+    let seeds = parse(input);
+
+    // find common sequences of 4. If a sequence is not present it will yield 0
+    // every seed has a cycle length. Can we use that to optimize?
+
+    // alternative 1: 1h 58 min
+    // brute_force(seeds)
+
+    // alternative 2: 1h 37 min
+    record(seeds)
+}
+
+pub fn aoc_2024_22_b_all_sequences(input: &str) -> i64 {
+    // maximize sum of prices
+    let seeds = parse(input);
+
+    // alternative 1: 1h 58 min
+    brute_force_all_sequences(seeds)
 }
 
 pub const INPUT: &str = include_str!("input.txt");
@@ -77,7 +235,7 @@ mod tests {
     #[case(11100544, 12249484)]
     #[case(12249484, 7753432)]
     #[case(7753432, 5908254)]
-    fn rng_should(#[case] seed: u32, #[case] expected: u32) {
+    fn rng_should(#[case] seed: i64, #[case] expected: i64) {
         let mut rng = super::AocRng::new(seed);
         assert_eq!(rng.next().unwrap(), expected);
     }
@@ -87,30 +245,92 @@ mod tests {
     #[case(10, 4700978)]
     #[case(100, 15273692)]
     #[case(2024, 8667524)]
-    fn cycle_should(#[case] seed: u32, #[case] exepected: u32) {
+    fn cycle_should(#[case] seed: i64, #[case] exepected: i64) {
         assert_eq!(super::cycle(seed, 2000), exepected);
     }
 
     #[rstest]
     #[case(TEST_INPUT, 37327623)]
-    fn aoc_2024_22_a_example(#[case] input: &str, #[case] exepected: u64) {
+    fn aoc_2024_22_a_example(#[case] input: &str, #[case] exepected: i64) {
         assert_eq!(super::aoc_2024_22_a(input), exepected);
     }
 
     #[test]
     fn aoc_2024_22_a() {
-        assert_eq!(super::aoc_2024_22_a(super::INPUT), 0);
+        assert_eq!(super::aoc_2024_22_a(super::INPUT), 17960270302);
     }
 
     #[rstest]
-    #[case(TEST_INPUT, 0)]
-    fn aoc_2024_22_b_example(#[case] input: &str, #[case] exepected: u32) {
+    #[case(123, vec![-3,6,-1,-1,0,2,-2,0,-2], 2)]
+    fn diff_should_yield(#[case] seed: i64, #[case] expected: Vec<i64>, #[case] price: i64) {
+        let mut dif_rng = super::RngDiff::new(seed);
+        let diffs = (0..expected.len())
+            .flat_map(|_| dif_rng.next())
+            .collect::<Vec<_>>();
+
+        assert_eq!(diffs, expected);
+        assert_eq!(dif_rng.price, price);
+    }
+
+    #[rstest]
+    #[case(0, [-9,-9,-9,-9])]
+    #[case(1, [-9,-9,-9,-8])]
+    #[case(17, [-9,-9,-9,8])]
+    #[case(18, [-9,-9,-9,9])]
+    #[case(19, [-9,-9,-8,-9])]
+    #[case(20, [-9,-9,-8,-8])]
+    #[case((19*19*19*19)/2, [0,0,0,0])]
+    fn sequence_should(#[case] input: i64, #[case] exepected: [i64; 4]) {
+        assert_eq!(super::sequence(input), exepected);
+    }
+
+    #[rstest]
+    #[case(1, 7)]
+    #[case(2, 7)]
+    #[case(3, 0)]
+    #[case(2024, 9)]
+    fn price_by_sequence_should(#[case] input: i64, #[case] exepected: i64) {
+        assert_eq!(super::price_by_sequence(input, &[-2, 1, -1, 3]), exepected);
+    }
+
+    #[test]
+    fn find_common_sequences() {
+        /*
+
+        1) Not counting the last possible change
+
+        The test case
+
+        2021
+        5017
+        19751
+
+        should have Part 1: 18183557 and Part 2: 27 with sequence (3, 1, 4, 1).
+        If it's lower than 27 that's probably because you're not
+        checking the very last possible change.
+
+        2) Not counting the first possible change.
+
+        The test case
+
+        5053
+        10083
+        11263
+
+        should have Part 1: 8876699 and Part 2: 27 with sequence (-1, 0, -1, 8).
+        If it's lower than 27 that's probably because you're not
+        checking the first possible change.  */
+    }
+
+    #[rstest]
+    #[case(TEST_INPUT_2, 23)]
+    fn aoc_2024_22_b_example(#[case] input: &str, #[case] exepected: i64) {
         assert_eq!(super::aoc_2024_22_b(input), exepected);
     }
 
     #[test]
     fn aoc_2024_22_b() {
-        assert_eq!(super::aoc_2024_22_b(super::INPUT), 0);
+        assert_eq!(super::aoc_2024_22_b(super::INPUT), 2042);
     }
 
     const TEST_INPUT: &str = "1
@@ -119,5 +339,8 @@ mod tests {
 2024";
 
     #[allow(dead_code)]
-    const TEST_INPUT_2: &str = "";
+    const TEST_INPUT_2: &str = "1
+2
+3
+2024";
 }
