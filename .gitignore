@@ -11,6 +11,7 @@ Cargo.lock
 
 # you should not commit your personal input
 input.txt
+input.dot
 
 # override global ignore of bin
 !**/src/bin/  
