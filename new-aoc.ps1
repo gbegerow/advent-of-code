@@ -40,9 +40,9 @@ if (-not (Test-Path $folder)) {
     "modify lib.rs"
     $lib = switch -Regex -File ".\src\lib.rs" {
 
-        '^(.*)fn (part|aoc_\d+_\d+)_(.+)$' { 
-            '{2}fn {0}_{1}' -f $folder, $Matches.3, $Matches.1
-        }
+        # '^(.*)fn (part|aoc_\d+_\d+)_(.+)$' { 
+        #     '{2}fn {0}_{1}' -f $folder, $Matches.3, $Matches.1
+        # }
         
         # '^(.*)assert_eq!\(super::(part|aoc_\d+_\d+)_(.+)$' {
         #     '{2}assert_eq!(super::{0}_{1}' -f $folder, $Matches.3, $Matches.1
@@ -52,8 +52,8 @@ if (-not (Test-Path $folder)) {
             '{2}https://adventofcode.com/{0}/day/{1:00}{3}' -f $year, $day, $Matches.1, $Matches.3
         }
 
-        'aoc_\d+_\d+' { 
-            $_ -replace 'aoc_\d+_\d+', $folder; # we already matched it, is there a way to not match twice for replace?
+        '(part|aoc_\d+_\d+)' { 
+            $_ -replace '(part|aoc_\d+_\d+)', $folder; # we already matched it, is there a way to not match twice for replace?
         }
         
         Default { $_ }
