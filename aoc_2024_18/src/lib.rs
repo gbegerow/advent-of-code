@@ -186,9 +186,9 @@ mod tests {
         #[case] input: &str,
         #[case] bounds: IVec2,
         #[case] fallen: i32,
-        #[case] exepected: usize,
+        #[case] expected: usize,
     ) {
-        assert_eq!(super::aoc_2024_18_a(input, bounds, fallen), exepected);
+        assert_eq!(super::aoc_2024_18_a(input, bounds, fallen), expected);
     }
 
     #[test]
@@ -205,9 +205,9 @@ mod tests {
         #[case] input: &str,
         #[case] bounds: IVec2,
         #[case] fallen: i32,
-        #[case] exepected: String,
+        #[case] expected: String,
     ) {
-        assert_eq!(super::aoc_2024_18_b(input, bounds, fallen), exepected);
+        assert_eq!(super::aoc_2024_18_b(input, bounds, fallen), expected);
     }
 
     #[test]

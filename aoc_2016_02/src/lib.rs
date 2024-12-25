@@ -112,8 +112,8 @@ mod tests {
         ",
         "1985"
     )]
-    fn aoc_2016_02_a_example(#[case] input: &str, #[case] exepected: &str) {
-        assert_eq!(super::aoc_2016_02_a(input), exepected);
+    fn aoc_2016_02_a_example(#[case] input: &str, #[case] expected: &str) {
+        assert_eq!(super::aoc_2016_02_a(input), expected);
     }
 
     #[test]
@@ -130,8 +130,8 @@ mod tests {
         ",
         "5DB3"
     )]
-    fn aoc_2016_02_b_example(#[case] input: &str, #[case] exepected: &str) {
-        assert_eq!(super::aoc_2016_02_b(input), exepected);
+    fn aoc_2016_02_b_example(#[case] input: &str, #[case] expected: &str) {
+        assert_eq!(super::aoc_2016_02_b(input), expected);
     }
 
     #[test]

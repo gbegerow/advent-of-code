@@ -108,8 +108,8 @@ mod tests {
     #[case("R5, R5, R5, R5", 0)]
     #[case("L5, L5, L5, L5", 0)]
     #[case("L500", 500)]
-    fn aoc_2016_01_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2016_01_a(input), exepected);
+    fn aoc_2016_01_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2016_01_a(input), expected);
     }
 
     #[test]
@@ -127,8 +127,8 @@ mod tests {
     //     ^   v
     //     <<<<v
     #[case("R8, R4, R4, R8", 4)]
-    fn aoc_2016_01_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2016_01_b(input), exepected);
+    fn aoc_2016_01_b_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2016_01_b(input), expected);
     }
 
     #[test]

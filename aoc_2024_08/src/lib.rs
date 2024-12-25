@@ -200,19 +200,19 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT2, vec![IVec2::new(3,4), IVec2::new(4,8), IVec2::new(5,5),])]
-    fn antenna_should_have_antennas(#[case] input: &str, #[case] exepected: Vec<IVec2>) {
+    fn antenna_should_have_antennas(#[case] input: &str, #[case] expected: Vec<IVec2>) {
         let grid = super::parse(input);
         let Some(group) = grid.groups.get(&'a') else {
             panic!("no group a");
         };
 
         println!("{:?}", group);
-        assert_eq!(group.antennas, exepected);
+        assert_eq!(group.antennas, expected);
     }
 
     #[rstest]
     #[case(TEST_INPUT2, 4)]
-    fn antenna_should_have_n_antinodes(#[case] input: &str, #[case] exepected: usize) {
+    fn antenna_should_have_n_antinodes(#[case] input: &str, #[case] expected: usize) {
         let mut grid = super::parse(input);
         let Some(group) = grid.groups.get_mut(&'a') else {
             panic!("no group a");
@@ -220,15 +220,15 @@ mod tests {
         group.find_antinodes(IVec2::new(9, 9));
 
         println!("{:?}", group);
-        assert_eq!(group.antinodes.len(), exepected);
+        assert_eq!(group.antinodes.len(), expected);
     }
 
     #[rstest]
     #[case(TEST_INPUT, 14)]
     #[case(TEST_INPUT2, 4)]
     #[case(TEST_INPUT3, 3)]
-    fn aoc_2024_08_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_08_a(input), exepected);
+    fn aoc_2024_08_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_08_a(input), expected);
     }
 
     #[test]
@@ -238,8 +238,8 @@ mod tests {
 
     #[rstest]
     #[case("X, X", 0)]
-    fn aoc_2024_08_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_08_b(input), exepected);
+    fn aoc_2024_08_b_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_08_b(input), expected);
     }
 
     #[test]

@@ -224,8 +224,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 5)]
-    fn aoc_2024_20_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_20_a(input, 15), exepected);
+    fn aoc_2024_20_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_20_a(input, 15), expected);
     }
 
     #[test]
@@ -237,12 +237,8 @@ mod tests {
     #[case(TEST_INPUT, 76, 3)]
     #[case(TEST_INPUT, 70, 12+ 22+ 4 + 3)]
     #[case(TEST_INPUT, 50, 32+ 31+ 29+ 39+ 25+ 23+ 20+ 19+ 12+ 14+ 12+ 22+ 4 + 3)]
-    fn aoc_2024_20_b_example(
-        #[case] input: &str,
-        #[case] threshold: i32,
-        #[case] exepected: usize,
-    ) {
-        assert_eq!(super::aoc_2024_20_b(input, threshold), exepected);
+    fn aoc_2024_20_b_example(#[case] input: &str, #[case] threshold: i32, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_20_b(input, threshold), expected);
     }
 
     #[test]

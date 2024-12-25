@@ -220,7 +220,7 @@ mod tests {
                 },
             ],
         };
-        println!("sut:\t\t{:?}\nexepected\t{:?}", sut, expect);
+        println!("sut:\t\t{:?}\nexpected\t{:?}", sut, expect);
 
         assert_eq!(sut, expect);
     }
@@ -236,7 +236,7 @@ mod tests {
     //         name: "seed-to-soil map".to_string(),
     //         map: HashMap::from([(98, 50), (99, 51), (50, 52), (51, 53), (52, 54)]),
     //     };
-    //     println!("sut:\t\t{:?}\nexepected\t{:?}", sut, expect);
+    //     println!("sut:\t\t{:?}\nexpected\t{:?}", sut, expect);
 
     //     assert_eq!(sut, expect);
     //     // assert_eq!(sut.map.len(),expect.map.len());

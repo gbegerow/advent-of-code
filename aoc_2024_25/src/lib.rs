@@ -92,7 +92,7 @@ fn parse(input: &str) -> (Vec<Part>, Vec<Part>) {
                 // Pattern ended
                 let part = Part {
                     typ,
-                    heights: heights.clone(),
+                    heights,
                 };
 
                 match typ {

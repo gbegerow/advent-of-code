@@ -114,8 +114,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 0)]
-    fn aoc_2024_16_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_16_a(input), exepected);
+    fn aoc_2024_16_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_16_a(input), expected);
     }
 
     #[test]
@@ -125,8 +125,8 @@ mod tests {
 
     #[rstest]
     #[case("X, X", 0)]
-    fn aoc_2024_16_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_16_b(input), exepected);
+    fn aoc_2024_16_b_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_16_b(input), expected);
     }
 
     #[test]

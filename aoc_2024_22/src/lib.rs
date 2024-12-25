@@ -245,14 +245,14 @@ mod tests {
     #[case(10, 4700978)]
     #[case(100, 15273692)]
     #[case(2024, 8667524)]
-    fn cycle_should(#[case] seed: i64, #[case] exepected: i64) {
-        assert_eq!(super::cycle(seed, 2000), exepected);
+    fn cycle_should(#[case] seed: i64, #[case] expected: i64) {
+        assert_eq!(super::cycle(seed, 2000), expected);
     }
 
     #[rstest]
     #[case(TEST_INPUT, 37327623)]
-    fn aoc_2024_22_a_example(#[case] input: &str, #[case] exepected: i64) {
-        assert_eq!(super::aoc_2024_22_a(input), exepected);
+    fn aoc_2024_22_a_example(#[case] input: &str, #[case] expected: i64) {
+        assert_eq!(super::aoc_2024_22_a(input), expected);
     }
 
     #[test]
@@ -280,8 +280,8 @@ mod tests {
     #[case(19, [-9,-9,-8,-9])]
     #[case(20, [-9,-9,-8,-8])]
     #[case((19*19*19*19)/2, [0,0,0,0])]
-    fn sequence_should(#[case] input: i64, #[case] exepected: [i64; 4]) {
-        assert_eq!(super::sequence(input), exepected);
+    fn sequence_should(#[case] input: i64, #[case] expected: [i64; 4]) {
+        assert_eq!(super::sequence(input), expected);
     }
 
     #[rstest]
@@ -289,8 +289,8 @@ mod tests {
     #[case(2, 7)]
     #[case(3, 0)]
     #[case(2024, 9)]
-    fn price_by_sequence_should(#[case] input: i64, #[case] exepected: i64) {
-        assert_eq!(super::price_by_sequence(input, &[-2, 1, -1, 3]), exepected);
+    fn price_by_sequence_should(#[case] input: i64, #[case] expected: i64) {
+        assert_eq!(super::price_by_sequence(input, &[-2, 1, -1, 3]), expected);
     }
 
     #[test]
@@ -324,8 +324,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT_2, 23)]
-    fn aoc_2024_22_b_example(#[case] input: &str, #[case] exepected: i64) {
-        assert_eq!(super::aoc_2024_22_b(input), exepected);
+    fn aoc_2024_22_b_example(#[case] input: &str, #[case] expected: i64) {
+        assert_eq!(super::aoc_2024_22_b(input), expected);
     }
 
     #[test]

@@ -156,9 +156,9 @@ mod tests {
     #[case("abcdefgh", "abcde")]
     #[case("notarealroom", "oarel")]
     #[case("totallyrealroom", "loart")]
-    fn calc_checksum_should(#[case] input: &str, #[case] exepected: &str) {
+    fn calc_checksum_should(#[case] input: &str, #[case] expected: &str) {
         let checksum = calc_checksum(input);
-        assert_eq!(checksum, exepected);
+        assert_eq!(checksum, expected);
     }
 
     #[rstest]
@@ -167,9 +167,9 @@ mod tests {
     #[case("not-a-real-room-404[oarel]", true)]
     #[case("totally-real-room-200[decoy]", false)]
     #[case("qzmt-zixmtkozy-ivhz-343[zimth]", true)]
-    fn room_is_real_should(#[case] input: &str, #[case] exepected: bool) {
+    fn room_is_real_should(#[case] input: &str, #[case] expected: bool) {
         let room: Room = input.parse().unwrap();
-        assert_eq!(room.is_real(), exepected);
+        assert_eq!(room.is_real(), expected);
     }
 
     #[rstest]
@@ -180,8 +180,8 @@ mod tests {
     totally-real-room-200[decoy]",
         1514
     )]
-    fn aoc_2016_04_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2016_04_a(input), exepected);
+    fn aoc_2016_04_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2016_04_a(input), expected);
     }
 
     #[test]
@@ -193,9 +193,9 @@ mod tests {
     #[case("qzmt-zixmtkozy-ivhz-343[zimth]", "very encrypted name")]
     #[case("north-pole-objects-26[oetbc]", "north pole objects")]
     #[case("abcdef-1[abcde]", "bcdefg")]
-    fn decrypt_should(#[case] input: &str, #[case] exepected: &str) {
+    fn decrypt_should(#[case] input: &str, #[case] expected: &str) {
         let room: Room = input.parse().unwrap();
-        assert_eq!(room.decrypt(), exepected);
+        assert_eq!(room.decrypt(), expected);
     }
 
     #[test]

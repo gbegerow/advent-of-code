@@ -115,8 +115,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 6)]
-    fn aoc_2024_19_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_19_a(input), exepected);
+    fn aoc_2024_19_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_19_a(input), expected);
     }
 
     #[test]
@@ -131,16 +131,16 @@ mod tests {
     #[case("rrbgbr", 6)]
     #[case("bwurrg", 1)]
     #[case("brgr", 2)]
-    fn count_possibilitiies_should(#[case] input: &str, #[case] exepected: usize) {
+    fn count_possibilitiies_should(#[case] input: &str, #[case] expected: usize) {
         let pattern = vec!["r", "wr", "b", "g", "bwu", "rb", "gb", "br"];
 
-        assert_eq!(super::count_possibilitiies(input, &pattern), exepected);
+        assert_eq!(super::count_possibilitiies(input, &pattern), expected);
     }
 
     #[rstest]
     #[case(TEST_INPUT, 16)]
-    fn aoc_2024_19_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_19_b(input), exepected);
+    fn aoc_2024_19_b_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_19_b(input), expected);
     }
 
     #[test]

@@ -326,8 +326,8 @@ mod tests {
     #[rstest]
     #[case(TEST_INPUT, "4,6,3,5,6,3,5,2,1,0")]
     // #[case(TEST_INPUT_2, "4,6,3,5,6,3,5,2,1,0")]
-    fn aoc_2024_17_a_example(#[case] input: &str, #[case] exepected: String) {
-        assert_eq!(super::aoc_2024_17_a(input), exepected);
+    fn aoc_2024_17_a_example(#[case] input: &str, #[case] expected: String) {
+        assert_eq!(super::aoc_2024_17_a(input), expected);
     }
 
     #[test]
@@ -337,8 +337,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 117440)]
-    fn aoc_2024_17_b_example(#[case] input: &str, #[case] exepected: u32) {
-        assert_eq!(super::aoc_2024_17_b(input), exepected);
+    fn aoc_2024_17_b_example(#[case] input: &str, #[case] expected: u32) {
+        assert_eq!(super::aoc_2024_17_b(input), expected);
     }
 
     #[test]
@@ -348,7 +348,7 @@ mod tests {
 
     #[rstest]
     #[case(crate::INPUT, "6,2,7,2,3,1,6,0,5")]
-    fn algo_in_rust(#[case] input: &str, #[case] exepected: String) {
+    fn algo_in_rust(#[case] input: &str, #[case] expected: String) {
         let device = super::parse(input);
         println!("{device}");
 
@@ -386,7 +386,7 @@ mod tests {
             .collect::<Vec<_>>()
             .join(",");
 
-        assert_eq!(result, exepected);
+        assert_eq!(result, expected);
     }
 
     const TEST_INPUT: &str = "

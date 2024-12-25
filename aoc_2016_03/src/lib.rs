@@ -57,8 +57,8 @@ mod tests {
     #[rstest]
     #[case("5 10 25", 0)]
     #[case("16 10 25", 1)]
-    fn aoc_2016_03_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2016_03_a(input), exepected);
+    fn aoc_2016_03_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2016_03_a(input), expected);
     }
 
     #[test]
@@ -84,8 +84,8 @@ mod tests {
     //         103 0 0
     //         201 0 0
     //         202 0 0", 2)]
-    fn aoc_2016_03_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2016_03_b(input), exepected);
+    fn aoc_2016_03_b_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2016_03_b(input), expected);
     }
     #[test]
     fn aoc_2016_03_b() {

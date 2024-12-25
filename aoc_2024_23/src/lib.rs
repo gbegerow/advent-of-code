@@ -88,8 +88,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 7)]
-    fn aoc_2024_23_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_23_a(input), exepected);
+    fn aoc_2024_23_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_23_a(input), expected);
     }
 
     #[test]
@@ -99,8 +99,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, "co,de,ka,ta")]
-    fn aoc_2024_23_b_example(#[case] input: &str, #[case] exepected: String) {
-        assert_eq!(super::aoc_2024_23_b(input), exepected);
+    fn aoc_2024_23_b_example(#[case] input: &str, #[case] expected: String) {
+        assert_eq!(super::aoc_2024_23_b(input), expected);
     }
 
     #[test]

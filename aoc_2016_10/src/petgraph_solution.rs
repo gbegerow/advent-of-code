@@ -175,8 +175,8 @@ mod tests {
         Token::LowHigh(0, Target::Output(2), Target::Output(0))
     )]
     #[case("value 2 goes to bot 2 ", Token::Value(2, 2))]
-    fn token_parser_should(#[case] input: &str, #[case] exepected: Token) {
-        assert_eq!(parse(input)[0], exepected);
+    fn token_parser_should(#[case] input: &str, #[case] expected: Token) {
+        assert_eq!(parse(input)[0], expected);
     }
 
     #[test]

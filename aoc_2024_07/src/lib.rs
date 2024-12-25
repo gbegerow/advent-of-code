@@ -269,7 +269,7 @@ mod tests {
     #[rstest]
     #[case("5: 1 1 1 1 1", 0b00010)]
     #[case("27: 3 3 3", 0b111)]
-    fn combinations_is_full_range(#[case] input: &str, #[case] exepected: u64) {
+    fn combinations_is_full_range(#[case] input: &str, #[case] expected: u64) {
         let sut = input.parse::<Eqation>().expect("invalid input");
 
         let probes = sut.probe_ops();
@@ -284,7 +284,7 @@ mod tests {
         assert_eq!(
             probes,
             vec![OpCombination {
-                combination: exepected,
+                combination: expected,
                 len: sut.numbers.len() - 1
             }]
         );
@@ -292,8 +292,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 3749)]
-    fn aoc_2024_07_a_example(#[case] input: &str, #[case] exepected: u64) {
-        assert_eq!(super::aoc_2024_07_a(input), exepected);
+    fn aoc_2024_07_a_example(#[case] input: &str, #[case] expected: u64) {
+        assert_eq!(super::aoc_2024_07_a(input), expected);
     }
 
     #[test]
@@ -303,8 +303,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 11387)]
-    fn aoc_2024_07_b_example(#[case] input: &str, #[case] exepected: u64) {
-        assert_eq!(super::aoc_2024_07_b(input), exepected);
+    fn aoc_2024_07_b_example(#[case] input: &str, #[case] expected: u64) {
+        assert_eq!(super::aoc_2024_07_b(input), expected);
     }
 
     #[test]

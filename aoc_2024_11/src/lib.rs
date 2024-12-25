@@ -120,8 +120,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 55312)]
-    fn aoc_2024_11_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2024_11_a(input), exepected);
+    fn aoc_2024_11_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2024_11_a(input), expected);
     }
 
     #[test]

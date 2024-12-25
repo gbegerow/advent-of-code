@@ -104,8 +104,8 @@ mod tests {
     #[case(vec![-2, 1, -2, -1], false)]
     #[case(vec![2, 2, 0, 3], false)]
     #[case(vec![-2, -3, -1, -2], true)]
-    fn all_safe_should(#[case] input: Vec<i32>, #[case] exepected: bool) {
-        assert_eq!(super::all_safe(&input), exepected);
+    fn all_safe_should(#[case] input: Vec<i32>, #[case] expected: bool) {
+        assert_eq!(super::all_safe(&input), expected);
     }
 
     #[test]
@@ -125,8 +125,8 @@ mod tests {
     #[case(vec![-2, 1, -2, -1], false)]
     #[case(vec![2, 2, 0, 3], false)]
     #[case(vec![-2, -3, -1, -2], true)]
-    fn all_but_one_safe_should(#[case] input: Vec<i32>, #[case] exepected: bool) {
-        assert_eq!(super::all_safe(&input), exepected);
+    fn all_but_one_safe_should(#[case] input: Vec<i32>, #[case] expected: bool) {
+        assert_eq!(super::all_safe(&input), expected);
     }
 
     #[test]

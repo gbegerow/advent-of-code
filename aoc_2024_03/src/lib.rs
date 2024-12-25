@@ -91,8 +91,8 @@ mod tests {
     #[rstest]
     #[case(TEST_INPUT, 161)]
     #[case(TEST_INPUT2, 48)]
-    fn aoc_2024_03_b_example(#[case] input: &str, #[case] exepected: i64) {
-        assert_eq!(super::aoc_2024_03_b(input), exepected);
+    fn aoc_2024_03_b_example(#[case] input: &str, #[case] expected: i64) {
+        assert_eq!(super::aoc_2024_03_b(input), expected);
     }
 
     #[test]

@@ -205,8 +205,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, IVec2::new(11, 7), 12)]
-    fn aoc_2024_14_a_example(#[case] input: &str, #[case] bounds: IVec2, #[case] exepected: i32) {
-        assert_eq!(super::aoc_2024_14_a(input, bounds), exepected);
+    fn aoc_2024_14_a_example(#[case] input: &str, #[case] bounds: IVec2, #[case] expected: i32) {
+        assert_eq!(super::aoc_2024_14_a(input, bounds), expected);
     }
 
     #[test]

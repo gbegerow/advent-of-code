@@ -202,7 +202,7 @@ mod tests {
     ",
         6
     )]
-    fn interactive(#[case] input: &str, #[case] exepected: usize) {
+    fn interactive(#[case] input: &str, #[case] expected: usize) {
         let commands = parse(input);
         let mut screen = Screen::new(10, 4);
 
@@ -214,7 +214,7 @@ mod tests {
         println!("┌┬┬┬┬┬┬┬┬┐");
         println!("{}", screen);
 
-        assert_eq!(screen.count(), exepected);
+        assert_eq!(screen.count(), expected);
         // panic!("look at output");
     }
 
@@ -249,7 +249,7 @@ mod tests {
     #[case("rotate column x=3 by 1", "###..\n###..\n.....\n")]
     #[case("rotate column x=4 by 1", "###..\n###..\n.....\n")]
     #[case("rotate column x=1 by 2", "###..\n#.#..\n.#...\n")]
-    fn rotate_should(#[case] input: &str, #[case] exepected: &str) {
+    fn rotate_should(#[case] input: &str, #[case] expected: &str) {
         let commands = parse(format!("rect 3x2\n{}", input).as_str());
         let mut screen = Screen::new(5, 3);
 
@@ -261,7 +261,7 @@ mod tests {
         println!("┌┬┬┬┬┬┐");
         println!("{}", screen);
 
-        assert_eq!(format!("{}", screen), exepected);
+        assert_eq!(format!("{}", screen), expected);
     }
 
     #[test]
