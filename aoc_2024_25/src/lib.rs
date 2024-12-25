@@ -78,6 +78,8 @@ fn parse(input: &str) -> (Vec<Part>, Vec<Part>) {
                 heights.fill(0);
             }
 
+            // would have been enough to just count '#' per column, 
+            // we already know wether it is lock or key
             (ScanMode::Lock, '#') => {
                 heights[col] = row;
             }
