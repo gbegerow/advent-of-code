@@ -3,7 +3,13 @@ use std::collections::{BTreeMap, VecDeque};
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2024/day/24
     Solution idea:
+    Possible half adder?
+    Part a: Exceute in topological order
 
+    Part b: store each path in topological order
+    Test each path wether or not it is faulty by setting each bit only in input
+    Can we determine the pairs by looking, which output bit is set instead of which?
+    foreach faulty pair swap each two wires and test if still faulty
 */
 use nom::{
     branch::alt,
@@ -65,7 +71,8 @@ impl System<'_> {
             })
     }
 
-    fn execute_in_topological_order(&mut self) {
+    fn execute(&mut self) {
+        // execute_in_topological_order
         // kind of Kahn' algorithm https://en.wikipedia.org/wiki/Topological_sorting
 
         // nodes with a value are incoming without dependency
@@ -89,6 +96,7 @@ impl System<'_> {
             }
 
             // find all gates where the current is input. If both inputs are known, add gate to queue
+            // (prune graph in Kahn's algrorithmus)
             for gate in self.gates.values() {
                 // do we know both values now?
                 if gate.input1 == n && self.values.contains_key(&gate.input2) {
@@ -156,7 +164,7 @@ fn parse(input: &str) -> IResult<&str, System> {
 #[tracing::instrument]
 pub fn aoc_2024_24_a(input: &str) -> u64 {
     let (_, mut system) = parse(input).expect("invalid input");
-    system.execute_in_topological_order();
+    system.execute();
 
     system.value_of("z")
 }
@@ -164,7 +172,7 @@ pub fn aoc_2024_24_a(input: &str) -> u64 {
 #[tracing::instrument]
 pub fn aoc_2024_24_b(input: &str) -> u64 {
     let (_, mut system) = parse(input).expect("invalid input");
-    system.execute_in_topological_order();
+    system.execute();
 
     let x = system.value_of("x");
     let y = system.value_of("y");

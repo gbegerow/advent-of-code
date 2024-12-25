@@ -28,8 +28,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 0)]
-    fn part_a_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2016_01_a(input), exepected);
+    fn part_a_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2016_01_a(input), expected);
     }
 
     #[test]
@@ -39,8 +39,8 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 0)]
-    fn part_b_example(#[case] input: &str, #[case] exepected: usize) {
-        assert_eq!(super::aoc_2016_01_b(input), exepected);
+    fn part_b_example(#[case] input: &str, #[case] expected: usize) {
+        assert_eq!(super::aoc_2016_01_b(input), expected);
     }
 
     #[test]
