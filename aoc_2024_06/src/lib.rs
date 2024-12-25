@@ -24,12 +24,8 @@ use aoc_utils::grid::{Grid, EAST, NORTH, SOUTH, WEST};
 use glam::IVec2;
 use std::collections::HashSet;
 
-fn get_visited(input: &str) -> HashSet<IVec2> {
-    let mut grid: Grid<char> = input.parse().expect("valid grid");
-    // guard is always looking north (in sample and my input)
-    grid.find_cursor('^', '.');
+fn get_visited(mut grid: Grid<char>) -> (HashSet<IVec2>, bool) {
     let mut direction = NORTH;
-    println!("New guard start: {} {}", grid.cursor, direction);
 
     // record turns as nodes on the graph
     let mut nodes = vec![(grid.cursor, direction)];
@@ -44,7 +40,14 @@ fn get_visited(input: &str) -> HashSet<IVec2> {
                 // reached an obstruction, turn right / clockwise
                 grid.cursor -= direction;
                 direction = IVec2::new(-direction.y, direction.x);
-                nodes.push((grid.cursor, direction));
+
+                let node = (grid.cursor, direction);
+                if nodes.contains(&node) {
+                    // found a loop
+                    return (visited, true);
+                } else {
+                    nodes.push(node);
+                }
             }
             // moved
             _ => {
@@ -57,26 +60,46 @@ fn get_visited(input: &str) -> HashSet<IVec2> {
                     WEST => '<',
                     _ => '*',
                 };
-
-                // if visited.len() == 10 {
-                //     println!("{grid:#}");
-                // }
             }
         }
     }
     // println!("{grid:#}");
-    visited
+    (visited, false)
 }
 
 #[tracing::instrument]
 pub fn aoc_2024_06_a(input: &str) -> usize {
-    let visited = get_visited(input);
+    let mut grid: Grid<char> = input.parse().expect("valid grid");
+    // guard is always looking north (in sample and my input)
+    grid.find_cursor('^', '.');
+
+    let (visited, _) = get_visited(grid);
     visited.len()
 }
 
 #[tracing::instrument]
 pub fn aoc_2024_06_b(input: &str) -> usize {
-    0
+    let mut grid: Grid<char> = input.parse().expect("valid grid");
+    // guard is always looking north (in sample and my input)
+    grid.find_cursor('^', '.');
+
+    let g2 = grid.clone();
+    let (visited, _) = get_visited(g2);
+
+    // we could have constraiint further, but it is fast enough to just test every visited point
+    let mut loops = 0;
+    for v in visited {
+        let mut g2 = grid.clone();
+        // set a new obstacle
+        g2[v] = '#';
+
+        let (_, in_loop) = get_visited(g2);
+        if in_loop {
+            loops += 1;
+        }
+    }
+
+    loops
 }
 
 pub const INPUT: &str = include_str!("input.txt");
@@ -105,7 +128,7 @@ mod tests {
 
     #[test]
     fn aoc_2024_06_b() {
-        assert_eq!(super::aoc_2024_06_b(super::INPUT), 0);
+        assert_eq!(super::aoc_2024_06_b(super::INPUT), 1951);
     }
 
     // #[test]
