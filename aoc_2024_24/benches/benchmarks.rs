@@ -11,11 +11,6 @@ fn part1() {
 }
 
 #[divan::bench]
-fn part2_record() {
+fn part2() {
     aoc_2024_24_b(divan::black_box(INPUT));
-}
-
-#[divan::bench]
-fn part2_all_sequences() {
-    aoc_2024_24_b_all_sequences(divan::black_box(INPUT));
 }

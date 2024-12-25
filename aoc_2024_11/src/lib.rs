@@ -106,9 +106,7 @@ pub fn aoc_2024_11_b(input: &str) -> usize {
     let mut numbers = parse(input);
     let mut known = HashMap::with_capacity(10000);
 
-    let stones = blink_recursive(0, 75, &mut numbers, &mut known);
-
-    stones
+    blink_recursive(0, 75, &mut numbers, &mut known)
 }
 
 pub const INPUT: &str = include_str!("input.txt");

@@ -5,5 +5,5 @@ use aoc_2024_20::{aoc_2024_20_b, INPUT};
 fn main() {
     tracing_subscriber::fmt::init();
 
-    println!("Part B {}", aoc_2024_20_b(INPUT));
+    println!("Part B {}", aoc_2024_20_b(INPUT, 100));
 }

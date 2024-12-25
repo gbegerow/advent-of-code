@@ -61,7 +61,7 @@ fn qudrant(p: IVec2, bounds: IVec2) -> Option<i32> {
     Some(q)
 }
 
-fn get_quadrant_count(p: &Vec<IVec2>, bounds: IVec2) -> [i32; 4] {
+fn get_quadrant_count(p: &[IVec2], bounds: IVec2) -> [i32; 4] {
     let mut quadrants = [0, 0, 0, 0];
     for q in p.iter().flat_map(|p| qudrant(*p, bounds)) {
         quadrants[q as usize] += 1;
@@ -70,25 +70,25 @@ fn get_quadrant_count(p: &Vec<IVec2>, bounds: IVec2) -> [i32; 4] {
 }
 
 #[allow(dead_code)]
-fn get_bounding_box(p: &Vec<IVec2>) -> (IVec2, IVec2) {
+fn get_bounding_box(p: &[IVec2]) -> (IVec2, IVec2) {
     p.iter()
         .fold((IVec2::new(1000, 1000), IVec2::ZERO), |a, p| {
             (p.min(a.0), p.max(a.1))
         })
 }
 #[allow(dead_code)]
-fn get_center_of_mass(p: &Vec<IVec2>) -> IVec2 {
+fn get_center_of_mass(p: &[IVec2]) -> IVec2 {
     p.iter().fold(IVec2::ZERO, |a, p| a + p) / (p.len() as i32)
 }
 
-fn get_at_step(bots: &Vec<(IVec2, IVec2)>, step: i32, bounds: IVec2) -> Vec<IVec2> {
+fn get_at_step(bots: &[(IVec2, IVec2)], step: i32, bounds: IVec2) -> Vec<IVec2> {
     bots.iter()
         // without IVec2 this would just be the same but per dimension
         .map(|(p, v)| wrap_ivec2(p + v * step, bounds))
         .collect::<Vec<_>>()
 }
 
-fn draw(p: &Vec<IVec2>) {
+fn draw(p: &[IVec2]) {
     let bb = get_bounding_box(p);
 
     for y in bb.0.y..bb.1.y {
@@ -102,9 +102,9 @@ fn draw(p: &Vec<IVec2>) {
                 }
             );
         }
-        println!("");
+        println!();
     }
-    println!("");
+    println!();
 }
 
 #[tracing::instrument]
@@ -288,7 +288,7 @@ mod tests {
             }
         }
         println!("t: {t} found: {found}");
-        assert!(false); // assert_eq!(in_box, 0);
+        // assert!(false); // assert_eq!(in_box, 0);
     }
 
     #[test]

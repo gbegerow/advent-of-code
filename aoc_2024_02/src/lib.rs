@@ -3,7 +3,7 @@
     Solution idea:
 
 */
-fn all_safe(v: &Vec<i32>) -> bool {
+fn all_safe(v: &[i32]) -> bool {
     let sgn_should = v[0].signum(); // sign of first difference should be continued over all diffs
     v.iter().all(|d| is_safe(sgn_should, *d))
 }
@@ -27,12 +27,12 @@ fn parse(input: &str) -> Vec<Vec<i32>> {
         .collect::<Vec<_>>()
 }
 
-fn get_differences(reports: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+fn get_differences(reports: &[Vec<i32>]) -> Vec<Vec<i32>> {
     // now we can use window on slice
     reports.iter().map(|r| get_diff(r)).collect::<Vec<_>>()
 }
 
-fn get_diff(r: &Vec<i32>) -> Vec<i32> {
+fn get_diff(r: &[i32]) -> Vec<i32> {
     r[..]
         .windows(2)
         .map(|w| match w {
@@ -61,7 +61,7 @@ pub fn aoc_2024_02_b(input: &str) -> usize {
     let mut count = 0;
 
     for (report, diff) in reports.iter().zip(diffs.iter()) {
-        if all_safe(&diff) {
+        if all_safe(diff) {
             count += 1;
             continue;
         }

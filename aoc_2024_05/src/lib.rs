@@ -52,7 +52,7 @@ fn parse(input: &str) -> (Vec<(u32, u32)>, Vec<Vec<u32>>) {
 }
 
 #[allow(dead_code)]
-fn get_without_incoming(g: &Vec<(u32, u32)>) -> Vec<u32> {
+fn get_without_incoming(g: &[(u32, u32)]) -> Vec<u32> {
     let on_right = g.iter().map(|(_, r)| r).collect::<HashSet<_>>();
     g.iter()
         .filter(|(l, _)| !on_right.contains(l))
@@ -61,10 +61,10 @@ fn get_without_incoming(g: &Vec<(u32, u32)>) -> Vec<u32> {
 }
 
 #[allow(dead_code)]
-fn topo_sort(rules: &Vec<(u32, u32)>) -> Vec<u32> {
+fn topo_sort(rules: &[(u32, u32)]) -> Vec<u32> {
     // Kahn' algorithm https://en.wikipedia.org/wiki/Topological_sorting
 
-    let mut g = rules.clone();
+    let mut g = rules.to_owned();
     let mut sorted = Vec::with_capacity(rules.len() * 2);
     let mut no_incoming = VecDeque::from(get_without_incoming(&g));
 
@@ -86,7 +86,7 @@ fn topo_sort(rules: &Vec<(u32, u32)>) -> Vec<u32> {
 }
 
 #[allow(dead_code)]
-fn get_rule_violations(print: &Vec<u32>, rules: &Vec<(u32, u32)>) -> Vec<(u32, u32)> {
+fn get_rule_violations(print: &Vec<u32>, rules: &[(u32, u32)]) -> Vec<(u32, u32)> {
     rules
         .iter()
         .filter(|rule| !check_rule(rule, print))
@@ -94,7 +94,7 @@ fn get_rule_violations(print: &Vec<u32>, rules: &Vec<(u32, u32)>) -> Vec<(u32, u
         .collect()
 }
 
-fn get_first_violation(print: &Vec<u32>, rules: &Vec<(u32, u32)>) -> Option<(u32, u32)> {
+fn get_first_violation(print: &Vec<u32>, rules: &[(u32, u32)]) -> Option<(u32, u32)> {
     rules
         .iter()
         .filter(|rule| !check_rule(rule, print))
@@ -102,7 +102,7 @@ fn get_first_violation(print: &Vec<u32>, rules: &Vec<(u32, u32)>) -> Option<(u32
         .next()
 }
 
-fn check_all(print: &Vec<u32>, rules: &Vec<(u32, u32)>) -> bool {
+fn check_all(print: &Vec<u32>, rules: &[(u32, u32)]) -> bool {
     get_first_violation(print, rules).is_none()
     // get_rule_violations(print, rules).len() == 0
 
@@ -126,8 +126,9 @@ fn check_rule(rule: &(u32, u32), print: &Vec<u32>) -> bool {
             r_seen = true;
         }
     }
+
     // l was never seen, so no violation
-    return true;
+    true
 }
 
 #[tracing::instrument]

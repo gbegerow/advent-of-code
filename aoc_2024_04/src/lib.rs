@@ -29,12 +29,13 @@ fn get_diagonal_positions() -> Vec<IVec2> {
     ]
 }
 
-fn scan_for_startpoints(grid: &Vec<Vec<char>>, start: char) -> Vec<IVec2> {
+fn scan_for_startpoints(grid: &[Vec<char>], start: char) -> Vec<IVec2> {
     let w = grid[0].len();
     let h = grid.len();
     let mut startpoints = Vec::with_capacity(w * h);
 
     // scan for startpoints
+    #[allow(clippy::needless_range_loop)]
     for row in 0..h {
         for col in 0..w {
             if grid[row][col] == start {

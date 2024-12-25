@@ -9,7 +9,9 @@ work year_day part:
 # www-build:
 #    cargo +nightly leptos build --project www --release
 lint year_day:
-    cargo clippy -p aoc_{{year_day}}
+    cargo clippy --lib -p aoc_{{year_day}}
+fix year_day:
+    cargo clippy --fix --lib -p aoc_{{year_day}}
 test year_day part:
     cargo nextest run -p aoc_{{year_day}} aoc_{{year_day}}_{{part}}
 bench-all:
