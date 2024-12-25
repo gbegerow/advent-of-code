@@ -24,16 +24,18 @@ use aoc_utils::grid::{Grid, EAST, NORTH, SOUTH, WEST};
 use glam::IVec2;
 use std::collections::HashSet;
 
-#[tracing::instrument]
-pub fn aoc_2024_06_a(input: &str) -> usize {
+fn get_visited(input: &str) -> HashSet<IVec2> {
     let mut grid: Grid<char> = input.parse().expect("valid grid");
     // guard is always looking north (in sample and my input)
     grid.find_cursor('^', '.');
     let mut direction = NORTH;
+    println!("New guard start: {} {}", grid.cursor, direction);
 
     // record turns as nodes on the graph
     let mut nodes = vec![(grid.cursor, direction)];
     let mut visited = HashSet::with_capacity(grid.width * grid.height);
+    visited.insert(grid.cursor);
+
     // while inside
     while let Some(c) = grid.move_cursor(direction) {
         match c {
@@ -54,127 +56,23 @@ pub fn aoc_2024_06_a(input: &str) -> usize {
                     SOUTH => 'v',
                     WEST => '<',
                     _ => '*',
-                }
+                };
+
+                // if visited.len() == 10 {
+                //     println!("{grid:#}");
+                // }
             }
         }
     }
-    println!("{grid:#}");
-    // 1 less for full input
-    // TODO: calc visited with both methods and look for difference
-
-    // let grid_points = input
-    //     .trim()
-    //     .lines()
-    //     .enumerate()
-    //     .flat_map(|(row, l)| {
-    //         l.chars().enumerate().flat_map(move |(col, c)| match c {
-    //             '#' => Some((IVec2::new(row as i32, col as i32), b'#')),
-    //             '^' => Some((IVec2::new(row as i32, col as i32), b'^')),
-    //             '>' => Some((IVec2::new(row as i32, col as i32), b'>')),
-    //             'v' => Some((IVec2::new(row as i32, col as i32), b'v')),
-    //             '<' => Some((IVec2::new(row as i32, col as i32), b'<')),
-    //             _ => None,
-    //         })
-    //     })
-    //     .collect::<Vec<_>>();
-
-    // // extract guards position from grid and remove it.
-    // let (start, direction) = match grid_points.iter().find(|&(_p, t)| *t != b'#') {
-    //     Some((p, b'^')) => (p, N),
-    //     Some((p, b'>')) => (p, E),
-    //     Some((p, b'v')) => (p, S),
-    //     Some((p, b'<')) => (p, W),
-    //     _ => panic!("No guard position found"),
-    // };
-
-    // let obstructions = grid_points
-    //     .iter()
-    //     .filter(|&(_p, t)| *t == b'#')
-    //     .map(|&(p, _t)| p)
-    //     .collect::<HashSet<_>>();
-    // // is there an easy way to not iterate multiple times over input
-    // let width = input
-    //     .lines()
-    //     .map(|l| l.len() as i32)
-    //     .next()
-    //     .expect("At least one line");
-    // let height = input.lines().count() as i32;
-
-    // let mut cursor = start.clone();
-    // let mut direction = direction;
-
-    // let mut visited = HashSet::with_capacity((width * height) as usize);
-    // let outer_bounds = IVec2::new(width - 1, height - 1);
-    // println!("bounds {} - {}", IVec2::ZERO, outer_bounds);
-    // print_grid(cursor, direction, outer_bounds, &obstructions, &visited);
-
-    // while cursor.min(IVec2::ZERO) == IVec2::ZERO && cursor.max(outer_bounds) == outer_bounds {
-    //     // just one step at a time. if it was cheap to get the next obstacle in direction, this could be much more efficien as distance
-    //     if obstructions.contains(&cursor) {
-    //         // stop before obstacle, not in it
-    //         cursor -= direction;
-    //         // reached an obstruction, turn right / clockwise
-    //         direction = IVec2::new(direction.y, -direction.x);
-
-    //         print_grid(cursor, direction, outer_bounds, &obstructions, &visited);
-    //     } else {
-    //         visited.insert(cursor);
-    //     }
-    //     cursor += direction;
-    // }
-    // print_grid(cursor, direction, outer_bounds, &obstructions, &visited);
-
-    // assert!(
-    //     obstructions.is_disjoint(&visited),
-    //     "Obstacles should never be visited"
-    // );
-
-    visited.len()
+    // println!("{grid:#}");
+    visited
 }
 
-// fn print_grid(
-//     cursor: IVec2,
-//     direction: IVec2,
-//     outer_bounds: IVec2,
-//     obstructions: &HashSet<IVec2>,
-//     visited: &HashSet<IVec2>,
-// ) {
-//     println!(
-//         "cursor: {} direction: {} visited: {}",
-//         cursor,
-//         direction,
-//         visited.len()
-//     );
-//     if visited.len() < 50 {
-//         println!("{:?}", visited);
-//     }
-
-//     for row in 0..=outer_bounds.y {
-//         for col in 0..=outer_bounds.x {
-//             let cur = IVec2::new(row, col);
-//             let c = if cur == cursor {
-//                 match direction {
-//                     N => '^',
-//                     E => '>',
-//                     S => 'v',
-//                     W => '<',
-//                     _ => '?',
-//                 }
-//             // } else if cur == IVec2::ZERO {
-//             //     'o'
-//             } else if obstructions.contains(&cur) {
-//                 '#'
-//             } else if visited.contains(&cur) {
-//                 '*'
-//             } else {
-//                 '.'
-//             };
-//             print!("{c}");
-//         }
-//         println!("");
-//     }
-//     println!("");
-// }
+#[tracing::instrument]
+pub fn aoc_2024_06_a(input: &str) -> usize {
+    let visited = get_visited(input);
+    visited.len()
+}
 
 #[tracing::instrument]
 pub fn aoc_2024_06_b(input: &str) -> usize {
@@ -185,6 +83,7 @@ pub const INPUT: &str = include_str!("input.txt");
 
 #[cfg(test)]
 mod tests {
+
     use rstest::rstest;
 
     #[rstest]
@@ -208,6 +107,30 @@ mod tests {
     fn aoc_2024_06_b() {
         assert_eq!(super::aoc_2024_06_b(super::INPUT), 0);
     }
+
+    // #[test]
+    // fn visited_should_be_same_as_old() {
+    //     use std::collections::HashSet;
+
+    // use glam::IVec2;
+    // // aoc grid yields 1 less for full input, bc start was not in visited
+
+    //     let new = super::get_visited(super::INPUT);
+    //     let old = super::get_visited_old(super::INPUT)
+    //         .iter()
+    //         // old uses row, col instead of x,y
+    //         .map(|v| IVec2::new(v.y, v.x))
+    //         .collect::<HashSet<_>>();
+
+    //     let diff = new.symmetric_difference(&old).collect::<HashSet<_>>();
+
+    //     assert_eq!(diff, HashSet::new());
+    //     // assert_eq!(diff.len(), 0);
+    //     // new.iter()
+    //     //     .zip(old.iter())
+    //     //     .enumerate()
+    //     //     .for_each(|(i, (n, o))| assert_eq!(n, o, "{}: {}  vs  {}", i, n, o));
+    // }
 
     const TEST_INPUT: &str = "....#.....
 .........#
