@@ -188,7 +188,7 @@ impl Eqation {
             .skip(1)
             // not sure this is still right, '||' are two chars
             .zip(op_str.chars())
-            .fold(String::new(), |mut accu, (n, op)| {
+            .fold(String::with_capacity(512), |mut accu, (n, op)| {
                 let _ = write!(accu, " {} {}", op, n);
                 accu
             });

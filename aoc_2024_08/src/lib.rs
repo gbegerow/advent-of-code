@@ -23,10 +23,12 @@ struct Group {
 }
 
 impl Group {
-    fn find_antinodes(&mut self, bounds: IVec2) {
+    fn find_antinodes(&mut self, bounds: IVec2, harmonics: bool) {
         if !self.antinodes.is_empty() {
             return;
         }
+
+        let mul = if harmonics { bounds.y } else { 1 };
 
         println!("Group {}:{:?}", self.id, self.antennas);
         // general form of cross product:  let cross = ys.flat_map(|y| xs.clone().map(move |x| (x, y)));
@@ -37,9 +39,24 @@ impl Group {
                 self.antennas
                     .iter()
                     // no antinodes by antenna itself
-                    .flat_map(move |b| (*a != *b).then(|| (*b + (*b - *a), *a, *b)))
+                    .flat_map(move |b| {
+                        (*a != *b).then(|| (0..mul).map(|i| (*b + i * (*b - *a), *a, *b)))
+                    })
+                    .flatten()
             })
-            .inspect(|(anti, a, b)| println!("a{a} b{b} -> #{anti}"))
+            .inspect(|(anti, a, b)| {
+                println!(
+                    "a{} b{} -> #{} {}",
+                    a,
+                    b,
+                    anti,
+                    if anti.min(IVec2::ZERO) != IVec2::ZERO || anti.max(bounds) != bounds {
+                        "X"
+                    } else {
+                        ""
+                    }
+                )
+            })
             .map(|(anti, _, _)| anti)
             .filter(|p| p.min(IVec2::ZERO) == IVec2::ZERO && p.max(bounds) == bounds)
             .collect();
@@ -53,11 +70,11 @@ struct SparseGrid {
 }
 
 impl SparseGrid {
-    fn get_all_antinodes(&mut self) -> HashSet<IVec2> {
+    fn get_all_antinodes(&mut self, harmonics: bool) -> HashSet<IVec2> {
         self.groups
             .values_mut()
             .flat_map(|g| {
-                g.find_antinodes(self.bounds);
+                g.find_antinodes(self.bounds, harmonics);
                 &g.antinodes
             })
             .filter(|p| p.min(IVec2::ZERO) == IVec2::ZERO && p.max(self.bounds) == self.bounds)
@@ -70,6 +87,7 @@ impl SparseGrid {
         self.groups.values().any(|g| g.antennas.contains(pos))
     }
 
+    #[allow(dead_code)]
     fn print_grid(&self) {
         // scale
         for x in 0..self.bounds.x {
@@ -82,7 +100,7 @@ impl SparseGrid {
                 }
             );
         }
-        println!("");
+        println!();
 
         let mut multiple = Vec::<String>::new();
 
@@ -99,9 +117,9 @@ impl SparseGrid {
                             .iter()
                             .filter(|v| **v == pos)
                             .map(|_| Some('#'))
-                            .chain(once(g.antennas.contains(&pos).then(|| g.id)))
+                            .chain(once(g.antennas.contains(&pos).then_some(g.id)))
                     })
-                    .flat_map(|o| o)
+                    .flatten()
                     .collect::<Vec<_>>();
 
                 let symbol = match symbols.len() {
@@ -111,20 +129,19 @@ impl SparseGrid {
                         multiple.push(format!("{}: {:?}", pos, symbols));
 
                         // if multiple node on one pos, print antenna id
-                        symbols
+                        *symbols
                             .iter()
                             .filter(|c| c.is_ascii_alphanumeric())
                             .last()
                             .unwrap_or(&'#')
-                            .clone()
                     }
                 };
                 print!("{symbol}")
             }
             println!(" |{row:2}");
         }
-        println!("");
-        println!("{:?}", multiple);
+        println!();
+        println!("Multiple: {:?}", multiple);
     }
 }
 
@@ -139,7 +156,7 @@ fn parse(input: &str) -> SparseGrid {
             .try_into()
             .expect("reasonable grid"),
         input.lines().count().try_into().expect("reasonable grid"),
-    );
+    ) - 1;
 
     let mut points = HashMap::with_capacity(input.len());
     for (id, point) in input.lines().enumerate().flat_map(|(row, l)| {
@@ -154,7 +171,7 @@ fn parse(input: &str) -> SparseGrid {
             .entry(id)
             .and_modify(|e: &mut Group| e.antennas.push(point))
             .or_insert(Group {
-                id: id,
+                id,
                 antennas: vec![point],
                 antinodes: vec![],
             });
@@ -169,26 +186,40 @@ fn parse(input: &str) -> SparseGrid {
 #[tracing::instrument]
 pub fn aoc_2024_08_a(input: &str) -> usize {
     let mut grid = parse(input);
-    let all_antinodes = grid.get_all_antinodes();
+    println!("Grid {}", grid.bounds);
+
+    let all_antinodes = grid.get_all_antinodes(false);
     let mut antinodes = all_antinodes
         .iter()
-        .filter(|p| !grid.is_antenna(p))
+        // .filter(|p| !grid.is_antenna(p))
+        .filter(|p| p.x == 50 || p.y == 50)
         .collect::<Vec<_>>();
 
     grid.print_grid();
 
-    // antinodes.sort_by(|a, b| a.x.cmp(&b.x).then_with(|| a.y.cmp(&b.y)));
-    // println!("all ({}): {:?}\n filtered ({}): {:?}",
-    // all_antinodes.len(), all_antinodes, antinodes.len(), antinodes);
+    antinodes.sort_by(|a, b| a.x.cmp(&b.x).then_with(|| a.y.cmp(&b.y)));
+    println!(
+        "filtered ({}): {:?}",
+        // all_antinodes.len(),
+        // all_antinodes,
+        antinodes.len(),
+        antinodes
+    );
 
     // 425 is too high
     // 388 is too low (no overlap of node and antenna)
-    antinodes.len()
+    // Off-by-one in bounds corrected yields correct
+    all_antinodes.len()
 }
 
 #[tracing::instrument]
-pub fn aoc_2024_08_b(_input: &str) -> usize {
-    0
+pub fn aoc_2024_08_b(input: &str) -> usize {
+    let mut grid = parse(input);
+    println!("Grid {}", grid.bounds);
+
+    let all_antinodes = grid.get_all_antinodes(true);
+
+    all_antinodes.len()
 }
 
 pub const INPUT: &str = include_str!("input.txt");
@@ -217,7 +248,7 @@ mod tests {
         let Some(group) = grid.groups.get_mut(&'a') else {
             panic!("no group a");
         };
-        group.find_antinodes(IVec2::new(9, 9));
+        group.find_antinodes(IVec2::new(9, 9), false);
 
         println!("{:?}", group);
         assert_eq!(group.antinodes.len(), expected);
@@ -226,25 +257,25 @@ mod tests {
     #[rstest]
     #[case(TEST_INPUT, 14)]
     #[case(TEST_INPUT2, 4)]
-    #[case(TEST_INPUT3, 3)]
+    #[case(TEST_INPUT3, 4)]
     fn aoc_2024_08_a_example(#[case] input: &str, #[case] expected: usize) {
         assert_eq!(super::aoc_2024_08_a(input), expected);
     }
 
     #[test]
     fn aoc_2024_08_a() {
-        assert_eq!(super::aoc_2024_08_a(super::INPUT), 0);
+        assert_eq!(super::aoc_2024_08_a(super::INPUT), 413);
     }
 
     #[rstest]
-    #[case("X, X", 0)]
+    #[case(TEST_INPUT, 34)]
     fn aoc_2024_08_b_example(#[case] input: &str, #[case] expected: usize) {
         assert_eq!(super::aoc_2024_08_b(input), expected);
     }
 
     #[test]
     fn aoc_2024_08_b() {
-        assert_eq!(super::aoc_2024_08_b(super::INPUT), 0);
+        assert_eq!(super::aoc_2024_08_b(super::INPUT), 1417);
     }
 
     #[test]
