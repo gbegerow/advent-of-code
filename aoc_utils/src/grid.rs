@@ -22,10 +22,6 @@ pub struct Grid<T> {
     pub upper_bound: IVec2,
 }
 
-// pub struct NeihbourIterator {
-// todo
-// }
-
 impl<T> Grid<T> {
     pub fn new(values: Vec<T>, width: usize, height: usize) -> Self {
         Self {
