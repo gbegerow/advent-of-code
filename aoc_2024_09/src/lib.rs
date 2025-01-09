@@ -3,7 +3,7 @@
     Solution idea:
     Never expand in AoC
 */
-use std::fmt::Write;
+use std::{fmt::Write, usize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Run {
@@ -228,8 +228,10 @@ pub fn aoc_2024_09_b(input: &str) -> usize {
 
     // do not restart every search for file
     let mut last_file = runs.len() - 1;
+    let mut last_id = usize::MAX;
 
     loop {
+        // find the next file from the right
         while let Run::Free(_) = runs[last_file] {
             if last_file == 0 {
                 panic!("No file found!");
@@ -240,21 +242,18 @@ pub fn aoc_2024_09_b(input: &str) -> usize {
             unreachable!("file")
         };
 
+        // try to find an empty space to fit within
+        // merge multiple empty spaces adjacent to each other
         let mut first_free: usize = 0;
         loop {
-            // no empty block, we are done moving files
+            first_free += 1;
+
+            // no empty block, ignore file
             if first_free >= runs.len() {
-                break;
+                continue;
             }
         }
 
-        while let Run::File(_, _) = runs[first_free] {
-            first_free += 1;
-            // no empty block, we are done moving files
-            if first_free >= runs.len() {
-                break;
-            }
-        }
         // no empty block in front, we are done moving files
         if first_free > last_file || first_free >= runs.len() {
             break;
@@ -287,7 +286,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case(TEST_INPUT, 0)]
+    #[case(TEST_INPUT, 2858)]
     fn aoc_2024_09_b_example(#[case] input: &str, #[case] expected: usize) {
         assert_eq!(super::aoc_2024_09_b(input), expected);
     }

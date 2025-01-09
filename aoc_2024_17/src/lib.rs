@@ -7,29 +7,29 @@
 
 use std::fmt::Display;
 
-const ADV: u32 = 0;
-const BXL: u32 = 1;
-const BST: u32 = 2;
-const JNZ: u32 = 3;
-const BXC: u32 = 4;
-const OUT: u32 = 5;
-const BDV: u32 = 6;
-const CDV: u32 = 7;
+const ADV: u64 = 0;
+const BXL: u64 = 1;
+const BST: u64 = 2;
+const JNZ: u64 = 3;
+const BXC: u64 = 4;
+const OUT: u64 = 5;
+const BDV: u64 = 6;
+const CDV: u64 = 7;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Cpu {
     pc: usize,
-    a: u32,
-    b: u32,
-    c: u32,
+    a: u64,
+    b: u64,
+    c: u64,
     halted: bool,
 }
 
 #[derive(Debug)]
 struct Device {
     cpu: Cpu,
-    instructions: Vec<u32>,
-    output: Vec<u32>,
+    instructions: Vec<u64>,
+    output: Vec<u64>,
 }
 
 fn parse(input: &str) -> Device {
@@ -43,7 +43,7 @@ fn parse(input: &str) -> Device {
         }
         match tokens[0] {
             "Register" => {
-                let operand: u32 = tokens[2].parse().expect("valid program");
+                let operand: u64 = tokens[2].parse().expect("valid program");
                 match tokens[1] {
                     "A:" => a = operand,
                     "B:" => b = operand,
@@ -57,7 +57,7 @@ fn parse(input: &str) -> Device {
                 // so delay interpretation to execution
                 instructions = tokens[1]
                     .split(',')
-                    .flat_map(|i| i.parse::<u32>())
+                    .flat_map(|i| i.parse::<u64>())
                     .collect();
             }
 
@@ -78,7 +78,7 @@ fn parse(input: &str) -> Device {
     }
 }
 
-fn format_combo(i: &u32) -> String {
+fn format_combo(i: &u64) -> String {
     match i {
         0..=3 => i.to_string(),
         4 => "A".to_string(),
@@ -88,7 +88,7 @@ fn format_combo(i: &u32) -> String {
         _ => "reserved".to_string(),
     }
 }
-fn format_instruction(inst: &[u32]) -> String {
+fn format_instruction(inst: &[u64]) -> String {
     let [opcode, operand, ..] = inst else {
         return "invalid".to_string();
         //panic!("invalid instructions {:?}", inst)
@@ -147,7 +147,7 @@ impl Display for Device {
     }
 }
 
-fn combo(cpu: &Cpu, operand: u32) -> u32 {
+fn combo(cpu: &Cpu, operand: u64) -> u64 {
     match operand {
         0..=3 => operand,
         4 => cpu.a,
@@ -157,7 +157,7 @@ fn combo(cpu: &Cpu, operand: u32) -> u32 {
         _ => unreachable!("reserved"),
     }
 }
-fn div(cpu: &Cpu, operand: u32) -> u32 {
+fn div(cpu: &Cpu, operand: u64) -> u64 {
     let c = combo(cpu, operand);
     // can never be 0
     let denominator = 1 << c;
@@ -165,7 +165,7 @@ fn div(cpu: &Cpu, operand: u32) -> u32 {
     cpu.a / denominator
 }
 
-fn execute(device: &Device) -> (Cpu, Option<u32>) {
+fn execute(device: &Device) -> (Cpu, Option<u64>) {
     let mut cpu = device.cpu.clone();
     let mut output = None;
 
@@ -258,14 +258,16 @@ pub fn aoc_2024_17_a(input: &str) -> String {
 }
 
 #[tracing::instrument]
-pub fn aoc_2024_17_b(input: &str) -> u32 {
+pub fn aoc_2024_17_b(input: &str) -> u64 {
+    // see follow_the_road test for solution, don't care to transfer it
+
     // find value for A so that output is copy of intructions
     // brute force is probably not a good idea
     // looks like a crypto algorithm with A is the key (enigma with a single or two rotors?)
     // how can we break the enigma?
     let org_device = parse(input);
 
-    for a in 1..u32::MAX {
+    for a in 1..u64::MAX {
         let mut device = Device {
             cpu: Cpu {
                 pc: 0,
@@ -321,6 +323,8 @@ pub const INPUT: &str = include_str!("input.txt");
 
 #[cfg(test)]
 mod tests {
+    use std::u64;
+
     use rstest::rstest;
 
     #[rstest]
@@ -337,7 +341,7 @@ mod tests {
 
     #[rstest]
     #[case(TEST_INPUT, 117440)]
-    fn aoc_2024_17_b_example(#[case] input: &str, #[case] expected: u32) {
+    fn aoc_2024_17_b_example(#[case] input: &str, #[case] expected: u64) {
         assert_eq!(super::aoc_2024_17_b(input), expected);
     }
 
@@ -347,7 +351,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case(crate::INPUT, "6,2,7,2,3,1,6,0,5")]
+    #[case(crate::INPUT, "6,2,7,2,3,1,6,0,5?")]
     fn algo_in_rust(#[case] input: &str, #[case] expected: String) {
         let device = super::parse(input);
         println!("{device}");
@@ -357,8 +361,8 @@ mod tests {
 
         // reimplementation of input code in rust to make it more readable
         let mut a = device.cpu.a;
-        let mut b: u32;
-        let mut c: u32;
+        let mut b: u64;
+        let mut c: u64;
         let mut output = Vec::new();
 
         // jnz 0
@@ -377,6 +381,14 @@ mod tests {
             b ^= c;
             //  out B
             output.push(b & 0b111);
+
+            // println!("A {:#o}\tB {:#o}\tC {:#o}\tOut: {:?}", a, b, c, output);
+            println!(
+                "A {:#010b}\tB {:#010b}\tC {:#010b}",
+                a & 0x3FF,
+                b & 0x3FF,
+                c & 0x3FF
+            );
         }
         // todo: write an inverse
 
@@ -387,6 +399,136 @@ mod tests {
             .join(",");
 
         assert_eq!(result, expected);
+    }
+
+    #[rstest]
+    #[case(crate::INPUT, 0)]
+    fn brute_force_in_rust(#[case] input: &str, #[case] expected: u64) {
+        let device = super::parse(input);
+        println!("{device}");
+
+        // solution probably arount 2^(16 digits *3 bits) = 48 bit
+        let mut register_a = 1 << 46; //device.cpu.a;
+                                      // A 0o263240543  B 0o0  C 0o0
+                                      // PC: 0000 Halted: false
+
+        while register_a < (1 << 49) {
+            // reimplementation of input code in rust to make it more readable
+            let mut a = register_a;
+            let mut b: u64;
+            let mut c: u64;
+            let mut output = Vec::new();
+
+            // jnz 0
+            while a > 0 {
+                // bst A
+                b = a & 0b111;
+                //  bxl 3
+                b ^= 0b011;
+                //  cdv B
+                c = a / (1 << b);
+                //  bxl 5
+                b ^= 0b101;
+                //  adv 3
+                a = a / (1 << 3);
+                //  bxc
+                b ^= c;
+                //  out B
+                output.push(b & 0b111);
+
+                // Do we deviate from expected output? break early
+                if &output[..] != &device.instructions[..output.len()] {
+                    break;
+                }
+            }
+            // todo: write an inverse
+            if &output[..] == &device.instructions[..] {
+                println!("Quine found for {register_a}");
+                break;
+            }
+
+            register_a += 1;
+            if 0 == register_a % 100_000_000 {
+                println!("{register_a}")
+            };
+        }
+
+        // 4_294_967_295 too low = u32::MAX
+        assert_eq!(register_a, expected);
+    }
+
+    #[rstest]
+    #[case(crate::INPUT, 236548287712877)]
+    fn follow_the_road(#[case] input: &str, #[case] expected: u64) {
+        let device = super::parse(input);
+        println!("{device}");
+
+        let mut seeds = Vec::with_capacity(1000);
+        seeds.push(0);
+        let mut min_solution = u64::MAX;
+        let program_len = device.instructions.len();
+
+        while let Some(register_a) = seeds.pop() {
+            // solution probably around 2^(16 digits *3 bits) = 48 bit
+            // 1 octal digit(3 bit) in Register A correspond to 1 output
+            // test all 8 possible values for digit
+            // if current yields a postfix of instructions, add to seeds
+            // if current yields complete instructions, take minimum as solution
+            // estimate 16 to 16*5=80 seeds / full calculations instead of 2^49
+            for digit in 0..8 {
+                // reimplementation of input code in rust to make it more readable
+                let current = digit | register_a << 3;
+                let mut a = current;
+                let mut b: u64;
+                let mut c: u64;
+                let mut output = Vec::with_capacity(program_len);
+
+                // jnz 0
+                while a > 0 {
+                    // bst A
+                    b = a & 0b111;
+                    //  bxl 3
+                    b ^= 0b011;
+                    //  cdv B
+                    c = a / (1 << b);
+                    //  bxl 5
+                    b ^= 0b101;
+                    //  adv 3
+                    a = a / (1 << 3);
+                    //  bxc
+                    b ^= c;
+                    //  out B
+                    output.push(b & 0b111);
+
+                    // early break does not work??? Don't care
+                }
+
+                // ignore empty from early break
+                if output.len() == 0 {
+                    continue;
+                }
+                // complete solution?
+                else if &output[..] == &device.instructions[..] {
+                    min_solution = min_solution.min(current);
+                    println!("Quine found for {current} solution: {min_solution}");
+                }
+                // Do we have a postfix candidate for next round
+                else if device.instructions.ends_with(&output[..]) {
+                    // there can never be a duplicate seed
+                    seeds.push(current);
+                    println!(
+                        "Seed {:#o} output {:?} inst {:?}",
+                        current,
+                        output,
+                        &device.instructions[program_len - output.len()..]
+                    );
+                }
+                // else not a candidate
+            }
+        }
+
+        assert_ne!(min_solution, u64::MAX, "No solution");
+        assert_eq!(min_solution, expected);
     }
 
     const TEST_INPUT: &str = "

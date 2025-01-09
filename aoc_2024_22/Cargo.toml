@@ -8,6 +8,7 @@ edition = "2021"
 aoc_utils = { path = "../aoc_utils" }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+ahash = {workspace=true}
 
 # terminal visualization dependcies
 # crossterm = { workspace = true, optional = true }
