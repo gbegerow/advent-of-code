@@ -1,10 +1,11 @@
 [package]
-name = "aoc_2024_11"
+name = "aoc_2025_01"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
 edition = "2024"
 
 [dependencies]
+aoc_utils = { path = "../aoc_utils" }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
@@ -44,6 +45,6 @@ test-log = { workspace = true }
 # name = "aoc_{year}_{day}_b"
 
 [[bench]]
-name = "aoc_9999_99_bench"
+name = "aoc_2025_01_bench"
 path = "benches/benchmarks.rs"
 harness = false

@@ -79,19 +79,19 @@ impl RngDiff {
 }
 
 fn price_by_sequence(seed: i64, sequence: &[i64; 4]) -> i64 {
-    let gen = &mut RngDiff::new(seed);
+    let generator = &mut RngDiff::new(seed);
 
     let mut i = 4;
-    let mut window = VecDeque::from_iter(gen.take(4));
+    let mut window = VecDeque::from_iter(generator.take(4));
 
     while i < CYCLES {
         i += 1;
         if window == sequence {
-            return gen.price;
+            return generator.price;
         }
 
         window.pop_front();
-        window.push_back(gen.next().unwrap());
+        window.push_back(generator.next().unwrap());
     }
     0
 }
@@ -149,10 +149,10 @@ pub fn record(seeds: Vec<i64>) -> i64 {
 
     for seed in seeds {
         let mut seen = HashSet::with_capacity(CYCLES as usize);
-        let gen = &mut RngDiff::new(seed);
+        let generator = &mut RngDiff::new(seed);
 
         let mut i = 4;
-        let mut window = VecDeque::from_iter(gen.take(4));
+        let mut window = VecDeque::from_iter(generator.take(4));
 
         while i < CYCLES {
             // we always stop at first encounter
@@ -166,18 +166,18 @@ pub fn record(seeds: Vec<i64>) -> i64 {
             seen.insert(window.clone());
             record
                 .entry(window.clone())
-                .and_modify(|sum| *sum *= gen.price)
-                .or_insert(gen.price);
+                .and_modify(|sum| *sum *= generator.price)
+                .or_insert(generator.price);
 
             i += 1;
 
             // is there a better way in stable rust without itertools for a sliding window?
             // would using a [i64;4] better? Benchmark it
-            // window = [window[0..3], gen.next().unwrap()] or mem::copy
-            // or just w[0]=w[1]; ... w[3]= gen.next
-            // or window = [w[1], w[2], w[3], gen.next]
+            // window = [window[0..3], generator.next().unwrap()] or mem::copy
+            // or just w[0]=w[1]; ... w[3]= generator.next
+            // or window = [w[1], w[2], w[3], generator.next]
             window.pop_front();
-            window.push_back(gen.next().unwrap());
+            window.push_back(generator.next().unwrap());
         }
     }
 

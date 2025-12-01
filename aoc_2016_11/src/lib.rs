@@ -13,7 +13,7 @@
     Assume 8 Chips in 16 Floors, not much more cost than 2 bit, but more flexible for b
       Debug output in hex, more compact. One item = one nibble
      can use bit ops for every test:
-     - No gen on floor => state AND genmask XOR floormask == 0
+     - No generator on floor => state AND genmask XOR floormask == 0
      - No uncoupled chip on floor => shift down, State AND mask == floor && shiftdown, state AND mask == floor
     less memory, faster and easier tests. Display a little bit harder.
     set chip n to floor x => state OR= x shift right n*2 => easier move execute
@@ -23,9 +23,9 @@
         generator_floor_mask =>  floor * generator_offset repeat
         item_mask = 0x0F
 
-     chip 0 => Floor 0, gen 0 => Floor 1, chip 1 => Floor 0, gen 1 => Floor 2
+     chip 0 => Floor 0, generator 0 => Floor 1, chip 1 => Floor 0, generator 1 => Floor 2
         0x2010 => 0010000000010000
-     chip 0 => Floor 1, gen 0 => Floor 1, chip 1 => Floor 0, gen 1 => Floor 2
+     chip 0 => Floor 1, generator 0 => Floor 1, chip 1 => Floor 0, generator 1 => Floor 2
         1 + 1 * 16 + 0 * 256 + 2 * 256* 16 => 0010000000010001
 
 */
@@ -65,11 +65,11 @@ const FLOOR_COUNT: usize = 4;
 // }
 
 /// Floor of chip and floor of generator
-/// coupled = .chip == .gen
+/// coupled = .chip == .generator
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct ItemPair {
     chip: u8,
-    gen: u8,
+    generator: u8,
     index: usize,
 }
 
@@ -79,13 +79,13 @@ impl ItemPair {
         Self {
             index,
             chip: pair & mask,
-            gen: (pair >> BUCKET_SIZE) & mask,
+            generator: (pair >> BUCKET_SIZE) & mask,
         }
     }
 
     #[inline]
     fn is_coupled(&self) -> bool {
-        self.chip == self.gen
+        self.chip == self.generator
     }
 }
 
@@ -259,8 +259,8 @@ impl State {
     fn is_valid(&self) -> bool {
         // (was) top candidate for optimization
 
-        // valid => filter all pairs coupled (gen == chip).
-        // For Rest no chip is allowed to be on same floor as any gen
+        // valid => filter all pairs coupled (generator == chip).
+        // For Rest no chip is allowed to be on same floor as any generator
         //  => intersection of generators and chips must be empty
 
         // now test should be relative cheap
@@ -270,9 +270,9 @@ impl State {
         // No bit in common = sets disjoint = chips and generators on different floors
         let mut c = 0;
         let mut g = 0;
-        for ItemPair { chip, gen, .. } in self.pairs().filter(|p| !p.is_coupled()) {
+        for ItemPair { chip, generator, .. } in self.pairs().filter(|p| !p.is_coupled()) {
             c |= 1 << chip;
-            g |= 1 << gen;
+            g |= 1 << generator;
         }
 
         (c & g) == 0
@@ -282,19 +282,19 @@ impl State {
     #[inline]
     fn is_final(&self) -> bool {
         // only last floor may have items
-        // final => all chip nibbles == 4 and all gen == 4
+        // final => all chip nibbles == 4 and all generator == 4
         (self.floors & 0x44_44_44_44_44_44_44_44u64) == self.floors
     }
 
     /// Heuristic distance to final state
     fn distance(&self) -> usize {
         // distance to final floor has most influence (cubic) but also distance between chip and genarator (linear or quadratic)
-        // sum of (max_floor - floor)³ + (|chip - gen|)
+        // sum of (max_floor - floor)³ + (|chip - generator|)
         self.pairs()
-            .map(|ItemPair { chip, gen, .. }| {
+            .map(|ItemPair { chip, generator, .. }| {
                 let cd = (4 - chip) as usize;
-                let gd = (4 - gen) as usize;
-                let cg = if chip > gen { chip - gen } else { gen - chip } as usize;
+                let gd = (4 - generator) as usize;
+                let cg = if chip > generator { chip - generator } else { generator - chip } as usize;
 
                 cd * cd * cd + gd * gd * gd + cg
             })

@@ -2,10 +2,11 @@
 name = "aoc_2024_12"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 aoc_utils = { path = "../aoc_utils" }
+glam = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 

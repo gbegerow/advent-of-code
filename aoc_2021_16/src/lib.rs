@@ -23,9 +23,7 @@ enum Package {
     },
 }
 
-fn consume(bits: &Vec<u8>, start: usize, len: usize) -> (/*result*/ usize, /* start */ usize) {
-    todo!()
-}
+
 
 pub fn aoc_2021_16_a(input: &str) -> usize {
     let package_def = input
@@ -34,7 +32,6 @@ pub fn aoc_2021_16_a(input: &str) -> usize {
         .filter_map(|h| u8::from_str_radix(&h.to_string(), 16).ok())
         .collect::<Vec<_>>();
 
-    //&let bit_stream = BigUint::parse_bytes(input.trim().as_bytes(), 16);
 
     0
 }
@@ -65,10 +62,10 @@ mod tests {
         assert_eq!(super::aoc_2021_16_b(INPUT), 0);
     }
 
-    #[test]
-    fn literal_D2FE28() {
-        assert_eq!(super::literal("D2FE28"), 2021)
-    }
+    // #[test]
+    // fn literal_D2FE28() {
+    //     assert_eq!(super::literal("D2FE28"), 2021)
+    // }
 
     const INPUT: &str = include_str!("input.txt");
 

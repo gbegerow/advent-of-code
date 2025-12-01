@@ -34,16 +34,16 @@ impl<T> Grid<T> {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn len(&self) -> usize {
         self.values.len()
     }
-    #[inline(always)]
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.values.is_empty()
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn to_index(&self, index: IVec2) -> Option<usize> {
         if index.x < 0
             || index.y < 0
@@ -56,7 +56,7 @@ impl<T> Grid<T> {
         Some(index.y as usize * self.width + index.x as usize)
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn to_ivec(&self, index: usize) -> IVec2 {
         // Todo: unittest with non quadratic grid
         IVec2::new((index % self.width) as i32, (index / self.width) as i32)
@@ -421,7 +421,7 @@ mod tests {
     #[case(INPUT_01, DISPLAY_01)]
     #[case(INPUT_02, DISPLAY_02)]
     fn display_should(#[case] input: &str, #[case] expected: &str) {
-        let sut: Grid<_> = input.parse().unwrap();
+        let sut: Grid<char> = input.parse().unwrap();
         let display = format!("{:#}", sut);
         assert_eq!(display, expected);
     }

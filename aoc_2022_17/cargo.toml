@@ -2,7 +2,7 @@
 name = "aoc_2022_17"
 version = "0.1.0"
 authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 crossterm = "0.25.0"

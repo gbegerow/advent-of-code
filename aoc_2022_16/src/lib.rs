@@ -77,7 +77,7 @@ pub fn aoc_2022_16_a(input: &str) -> usize {
         if flow > max_flow {
             max_flow = flow;
             // max_path = path.clone();
-            println!("Flow {} Path {}", max_flow, path.iter().map(|i| graph[i].label).collect::<Vec<_>>().join(", "));
+            //println!("Flow {} Path {}", max_flow, path.iter().map(|i| graph[i].label).collect::<Vec<_>>().join(", "));
         }
 
         if !graph[current].visited {

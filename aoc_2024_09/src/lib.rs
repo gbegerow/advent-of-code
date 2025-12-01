@@ -245,12 +245,29 @@ pub fn aoc_2024_09_b(input: &str) -> usize {
         // try to find an empty space to fit within
         // merge multiple empty spaces adjacent to each other
         let mut first_free: usize = 0;
+        let mut free_len = 0;
         loop {
             first_free += 1;
 
-            // no empty block, ignore file
+            // no empty block of sufficient length found, ignore file
             if first_free >= runs.len() {
-                continue;
+                break;
+            }
+
+            match runs[first_free] {
+                Run::File(0, _) => {
+                    println!(
+                        "Merge ? {:?} + 0 + {:?}",
+                        runs[first_free.saturating_sub(1)],
+                        runs[first_free.saturating_add(1)]
+                    );
+                }
+                Run::File(_, _) => (),
+                Run::Free(len) if len < file_len => (),
+                Run::Free(len) => {
+                    free_len += len;
+                    break;
+                }
             }
         }
 

@@ -17,6 +17,7 @@ impl<'a> FromStr for Op<'a> {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let op_rx = Regex::new(r"(\w+)((\=\d+)|\-)").unwrap();
+        todo!("finish parsing");
     }
 }
 

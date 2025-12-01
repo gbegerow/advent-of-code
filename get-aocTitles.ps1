@@ -5,9 +5,17 @@
 $endYear = if ( (get-date).Month -gt 11 ) { (get-date).year } else { (get-date).year - 1 };
 $years = 2015 .. $endYear;
 
-$aocData =
+$existingData = convertfrom-json (Get-Content -Raw "$PSScriptRoot\aoc_data.json")
+$aocData = 
 foreach ($year in $years) {
     for ($day = 1; $day -lt 26; $day++) {
+
+        $existing = $existingData | Where-Object { $_.year -eq $year -and $_.day -eq $day };
+        if ( $null -ne $existing -and $existing.a -ne "" -and $existing.b -ne "" ) {
+            $existing;
+            continue; # already have data and already have both stars
+        }
+
         $uri = "https://adventofcode.com/$year/day/$day";
         $h = curl $uri --cookie "session=$env:aoc_session"; #$h will be array 
 
