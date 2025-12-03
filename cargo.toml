@@ -35,6 +35,7 @@ miette = { version = "7.4.0", features = ["fancy"] }
 thiserror = "2.0"
 dhat = "0.3.2"
 reqwest = { version = "0.12" }
+rayon = "1.7.0"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

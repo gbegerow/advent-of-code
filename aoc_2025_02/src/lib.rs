@@ -4,6 +4,7 @@
 
 */
 use std::ops::RangeInclusive;
+use rayon::prelude::*;
 
 fn parse_ranges(input: &str) -> Vec<RangeInclusive<i64>> {
     input
@@ -60,7 +61,7 @@ pub fn aoc_2025_02_a(input: &str) -> i64 {
 pub fn aoc_2025_02_b(input: &str) -> i64 {
     let ranges = parse_ranges(input);
     ranges
-        .iter()
+        .par_iter() // try rayon for parallel processing
         .flat_map(|r| r.clone())
         .filter_map(|i| {
             if test_pattern(i) {
@@ -91,7 +92,7 @@ fn test_pattern(i: i64) -> bool {
             continue;
         }
         if &s[pattern_len..pattern_len+1] == first_char {
-            
+            // could test candidate right here, but let's collect them first
             candidates.push(pattern_len);
         }
     }
@@ -119,6 +120,7 @@ fn test_pattern(i: i64) -> bool {
             return true;
         }
     }
+
     // no pattern matched
     false
 }
