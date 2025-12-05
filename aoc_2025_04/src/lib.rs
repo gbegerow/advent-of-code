@@ -31,6 +31,8 @@ pub fn aoc_2025_04_b(input: &str) -> usize {
     let mut removables = accessible_rolls(&grid);
     let mut removed = 0;
     while !removables.is_empty() {
+        println!("grid after removing {} rolls: \n{}", removed, grid);
+
         for pos in &removables {
             // remove roll
             if let Some(cell) = grid.get_mut(*pos) {
