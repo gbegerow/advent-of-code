@@ -65,14 +65,17 @@ pub fn aoc_2025_06_a(input: &str) -> u64 {
 
 #[tracing::instrument]
 pub fn aoc_2025_06_b(input: &str) -> u64 {
-    let x = input.replace(" ", ".").parse::<Grid<char>>().expect("valid grid");
-    println!("{}", x);
+    let x = input
+        .replace(" ", ".")
+        .parse::<Grid<char>>()
+        .expect("valid grid");
+    // println!("{}", x);
 
     // parse all columns right to left as numbers till we hit a space only column, then apply operator
     // numbers start at the top but they may be positioned randomly in the column. Collect in a vec and then build the number
     let mut col = x.width as i32 - 1;
     let ops_row = x.height as i32 - 1;
-    let mut values = Vec::new();    
+    let mut values = Vec::new();
     let mut result = 0u64;
 
     let mut right_limit = col;
@@ -80,10 +83,8 @@ pub fn aoc_2025_06_b(input: &str) -> u64 {
         // collect number in this column
         let col_value = (0..x.height as i32 - 1) // ignore last row with operators
             .flat_map(|row| {
-                if let Some(c) = x.get(IVec2 {
-                    x: col,
-                    y: row,
-                }) && c.is_ascii_digit()
+                if let Some(c) = x.get(IVec2 { x: col, y: row })
+                    && c.is_ascii_digit()
                 {
                     Some(*c)
                 } else {
@@ -91,9 +92,9 @@ pub fn aoc_2025_06_b(input: &str) -> u64 {
                 }
             })
             .collect::<String>();
-            println!("col {} value '{}'", col, col_value);
+        // println!("col {} value '{}'", col, col_value);
 
-        if ! col_value.is_empty()  {
+        if !col_value.is_empty() {
             values.push(col_value.parse::<u64>().expect("valid number"));
         }
 
@@ -102,18 +103,26 @@ pub fn aoc_2025_06_b(input: &str) -> u64 {
             // empty column, indicates end of group
             // get operator from ops_row and apply to all values collected so far
             result += (col..right_limit)
-                .map(|op_col| 
-                match x.get(IVec2::new(op_col, ops_row)) {
-                    Some('+') => {println!("Adding values: {:?}", values); values.iter().sum()},
-                    Some('*') => { println!("Multiplying values: {:?}", values); values.iter().product()},
-                    None => {println!("out of bounds row {} col {}", ops_row, op_col); 0u64},
-                   _ => 0u64
-                }).sum::<u64>();
+                .map(|op_col| match x.get(IVec2::new(op_col, ops_row)) {
+                    Some('+') => {
+                        println!("Adding values: {:?}", values);
+                        values.iter().sum()
+                    }
+                    Some('*') => {
+                        println!("Multiplying values: {:?}", values);
+                        values.iter().product()
+                    }
+                    None => {
+                        println!("out of bounds row {} col {}", ops_row, op_col);
+                        0u64
+                    }
+                    _ => 0u64,
+                })
+                .sum::<u64>();
             // reset values for next group
             values.clear();
             right_limit = col;
-
-        } 
+        }
 
         // move left to next column
         col -= 1;
