@@ -9,6 +9,7 @@ aoc_utils = { path = "../aoc_utils" }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 regex = { workspace = true }
+glam = { workspace = true }
 
 # terminal visualization dependcies
 # crossterm = { workspace = true, optional = true }
