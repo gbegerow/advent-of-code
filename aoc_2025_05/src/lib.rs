@@ -1,11 +1,14 @@
 use std::{ops::RangeInclusive, str::FromStr};
-// use winnow::prelude::*;
-// use winnow::Result;
-// use winnow::ascii::dec_uint;
-// use winnow::ascii::multispace1;
 
-// use winnow::combinator::separated;
-// use winnow::combinator::separated_pair;
+use winnow::Result;
+use winnow::ascii::dec_uint;
+use winnow::ascii::line_ending;
+use winnow::ascii::{multispace0, multispace1};
+use winnow::error::ContextError;
+use winnow::prelude::*;
+
+use winnow::combinator::separated;
+use winnow::combinator::separated_pair;
 
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2025/day/05
@@ -15,63 +18,69 @@ use std::{ops::RangeInclusive, str::FromStr};
 
 #[derive(Debug)]
 struct Ingredients {
-    ranges: Vec<RangeInclusive<i64>>,
-    available: Vec<i64>,
+    ranges: Vec<RangeInclusive<u64>>,
+    available: Vec<u64>,
 }
 
 impl FromStr for Ingredients {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // parse_ingredients.parse(s).map_err(|e| e.to_string())
-
-        let parts: Vec<&str> = s.trim().split("\n\n").collect();
-        debug_assert!(parts.len() == 2);
-
-        let ranges = parts[0]
-            .lines()
-            .map(|l| {
-                let parts: Vec<&str> = l.trim().split('-').collect();
-                if parts.len() != 2 {
-                    return Err(format!("invalid range: {}", l));
-                }
-                let start = parts[0].parse::<i64>().map_err(|e| e.to_string())?;
-                let end = parts[1].parse::<i64>().map_err(|e| e.to_string())?;
-                Ok(start..=end)
-            })
-            .collect::<Result<Vec<RangeInclusive<i64>>, String>>()?;
-
-        let available = parts[1]
-            .lines()
-            .map(|l| l.trim().parse::<i64>().map_err(|e| e.to_string()))
-            .collect::<Result<Vec<i64>, String>>()?;
-
-        Ok(Ingredients { ranges, available })
+        parse_ingredients.parse(s).map_err(|e| e.to_string())
     }
+
+    // // iterator parsing version
+    // fn from_str(s: &str) -> Result<Self, Self::Err> {
+    //     let parts: Vec<&str> = s.trim().split("\n\n").collect();
+    //     debug_assert!(parts.len() == 2);
+
+    //     let ranges = parts[0]
+    //         .lines()
+    //         .map(|l| {
+    //             let parts: Vec<&str> = l.trim().split('-').collect();
+    //             if parts.len() != 2 {
+    //                 return Err(format!("invalid range: {}", l));
+    //             }
+    //             let start = parts[0].parse::<u64>().map_err(|e| e.to_string())?;
+    //             let end = parts[1].parse::<u64>().map_err(|e| e.to_string())?;
+    //             Ok(start..=end)
+    //         })
+    //         .collect::<Result<Vec<RangeInclusive<u64>>, String>>()?;
+
+    //     let available = parts[1]
+    //         .lines()
+    //         .map(|l| l.trim().parse::<u64>().map_err(|e| e.to_string()))
+    //         .collect::<Result<Vec<u64>, String>>()?;
+
+    //     Ok(Ingredients { ranges, available })
+    // }
 }
 
-// fn parse_range(input: &str) -> Result<RangeInclusive<i64>> {
-//     separated_pair(
-//         dec_uint::<i64>,
-//         winnow::ascii::char('-'),
-//         dec_uint::<i64>,
-//     ).map(|(start, end)| RangeInclusive::new(start, end))
-// }
+// winnow parser implementation
+type Stream<'i> = &'i str;
 
-// fn parse_ranges(input: &str) -> Result<Vec<RangeInclusive<i64>>> {
-//     separated(1.., parse_range, multispace1
-//     ).map(|(start, end)| RangeInclusive::new(start, end))
-// }
+fn parse_range<'s>(i: &mut Stream<'s>) -> Result<RangeInclusive<u64>> {
+    separated_pair(dec_uint, "-", dec_uint)
+        .parse_next(i)
+        .map(|(start, end)| RangeInclusive::new(start, end))
+}
 
-// fn parse_ids(input: &str) -> Result<Vec<i64>> {
-//     separated(1.., dec_uint::<i64>, multispace1)
-//     .map(map)
-// }
+fn parse_ranges<'s>(i: &mut Stream<'s>) -> Result<Vec<RangeInclusive<u64>>> {
+    separated(1.., parse_range, line_ending).parse_next(i)
+}
 
-// fn parse_ingredients(input: &str) -> Result<Ingredients> {
-//     separated_pair(parse_ranges, "\n\n", parse_ids)
-//     .map(|ranges, available| Ingredients { ranges, available })
-// }
+fn parse_ids<'s>(i: &mut Stream<'s>) -> Result<Vec<u64>> {
+    separated(1.., dec_uint::<Stream<'s>, u64, ContextError>, line_ending).parse_next(i)
+}
+
+fn parse_ingredients<'s>(i: &mut Stream<'s>) -> Result<Ingredients> {
+    (
+        multispace0,
+        separated_pair(parse_ranges, line_ending, parse_ids),
+    )
+        .parse_next(i)
+        .map(|(_,(ranges, available))| Ingredients { ranges, available })
+}
 
 #[tracing::instrument]
 pub fn aoc_2025_05_a(input: &str) -> Result<usize, String> {
@@ -100,11 +109,11 @@ pub fn aoc_2025_05_b(input: &str) -> Result<usize, String> {
     let ingredients: Ingredients = input.parse()?;
 
     // sort ranges by start so we don'T have to check the cardesian product of all ranges
-    let mut sorted_ranges: Vec<RangeInclusive<i64>> = ingredients.ranges.to_vec();
+    let mut sorted_ranges: Vec<RangeInclusive<u64>> = ingredients.ranges.to_vec();
     sorted_ranges.sort_by_key(|r| *r.start());
 
     // merge overlapping ranges to reduce number of checks and count without double counting
-    let merged_ranges: Vec<RangeInclusive<i64>> =
+    let merged_ranges: Vec<RangeInclusive<u64>> =
         sorted_ranges.into_iter().fold(Vec::new(), |mut acc, r| {
             // try to merge with last range which is enough as ranges are sorted now
             if let Some(last) = acc.last_mut()
@@ -122,7 +131,7 @@ pub fn aoc_2025_05_b(input: &str) -> Result<usize, String> {
 
     // Naive approach, iterate over all available ids and check if they are in any range
     // Much too many iterations for input (as to be expected in AoC)
-    // let set: HashSet<i64> = merged_ranges
+    // let set: HashSet<u64> = merged_ranges
     //     .iter()
     //     .flat_map(|r| r.clone().into_iter())
     //     .inspect(|i| println!("{i}"))
@@ -130,8 +139,9 @@ pub fn aoc_2025_05_b(input: &str) -> Result<usize, String> {
 
     // Ok(set.len())
 
-    // do not iterate over all ranges for each available id, just add the lengths of the merged ranges (to avoid double counting)
+    // do not iterate over all ranges for each available id, just add the lengths of the merged (to avoid double counting) ranges
     // remember these are inclusive ranges
+    // never ever expand ranges in AoC!
     let total_count: usize = merged_ranges
         .iter()
         .map(|r| (r.end() - r.start() + 1) as usize)
