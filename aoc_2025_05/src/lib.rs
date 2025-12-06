@@ -3,7 +3,9 @@ use std::{ops::RangeInclusive, str::FromStr};
 use winnow::Result;
 use winnow::ascii::dec_uint;
 use winnow::ascii::line_ending;
-use winnow::ascii::{multispace0, multispace1};
+use winnow::ascii::multispace0;
+use winnow::ascii::multispace1;
+use winnow::combinator::opt;
 use winnow::error::ContextError;
 use winnow::prelude::*;
 
@@ -70,16 +72,18 @@ fn parse_ranges<'s>(i: &mut Stream<'s>) -> Result<Vec<RangeInclusive<u64>>> {
 }
 
 fn parse_ids<'s>(i: &mut Stream<'s>) -> Result<Vec<u64>> {
-    separated(1.., dec_uint::<Stream<'s>, u64, ContextError>, line_ending).parse_next(i)
+    separated(1.., dec_uint::<Stream<'s>, u64, ContextError>, line_ending)
+    .parse_next(i)
 }
 
 fn parse_ingredients<'s>(i: &mut Stream<'s>) -> Result<Ingredients> {
-    (
-        multispace0,
-        separated_pair(parse_ranges, line_ending, parse_ids),
+    (   // allow leading/trailing whitespace
+        opt(multispace0),
+        separated_pair(parse_ranges, multispace1, parse_ids),
+        opt(multispace0),
     )
         .parse_next(i)
-        .map(|(_,(ranges, available))| Ingredients { ranges, available })
+        .map(|(_, (ranges, available), _)| Ingredients { ranges, available })
 }
 
 #[tracing::instrument]
@@ -153,7 +157,10 @@ pub const INPUT: &str = include_str!("input.txt");
 
 #[cfg(test)]
 mod tests {
+    use std::ops::RangeInclusive;
+
     use rstest::rstest;
+    use winnow::error::ContextError;
 
     #[rstest]
     #[case(TEST_INPUT, 3)]
@@ -175,6 +182,30 @@ mod tests {
     #[test]
     fn aoc_2025_05_b() {
         assert_eq!(super::aoc_2025_05_b(super::INPUT), Ok(347468726696961));
+    }
+
+    #[rstest]
+    #[case("10-14", Ok(RangeInclusive::new(10, 14)))]
+    #[case("10-14\n", Ok(RangeInclusive::new(10, 14)))]
+    fn parse_range_example(
+        #[case] input: &str,
+        #[case] expected: Result<RangeInclusive<u64>, ContextError>,
+    ) {
+        let mut input = input;
+        let result = super::parse_range(&mut input);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn parse_ranges_example() {
+        let mut input = "1-3\n5-7\n10-14\n";
+        let expected = Ok(vec![
+            RangeInclusive::new(1, 3),
+            RangeInclusive::new(5, 7),
+            RangeInclusive::new(10, 14),
+        ]);
+        let result = super::parse_ranges(&mut input);
+        assert_eq!(result, expected);
     }
 
     const TEST_INPUT: &str = "
