@@ -1,5 +1,3 @@
-use std::{collections::BTreeSet, usize};
-
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2025/day/07
     Solution idea:
@@ -7,6 +5,7 @@ use std::{collections::BTreeSet, usize};
 */
 use aoc_utils::grid::Grid;
 use glam::IVec2;
+use std::collections::BTreeSet;
 
 #[tracing::instrument]
 pub fn aoc_2025_07_a(input: &str) -> Result<usize, String> {
@@ -57,6 +56,12 @@ struct Beam {
     count: usize,
 }
 
+impl Beam {
+    fn new(x: i32, count: usize) -> Self {
+        Self { x, count }
+    }
+}
+
 #[tracing::instrument]
 pub fn aoc_2025_07_b(input: &str) -> Result<usize, String> {
     let mut grid = input.parse::<Grid<char>>().expect("valid grid");
@@ -64,11 +69,9 @@ pub fn aoc_2025_07_b(input: &str) -> Result<usize, String> {
     let start = grid.find_cursor('S', 'S');
 
     // list all active x coordinates of beams in a sorted set
-    let mut beams = Vec::with_capacity(grid.width);
-    beams.push(Beam {
-        x: start.x,
-        count: 1,
-    });
+    let mut beams = BTreeSet::new();
+    beams.insert(Beam::new(start.x, 1));
+
     let mut split_count = 0;
 
     for y in start.y + 1..grid.height as i32 {
@@ -80,7 +83,7 @@ pub fn aoc_2025_07_b(input: &str) -> Result<usize, String> {
                 if *cell == '^' {
                     // beam split, remove original, add both sides
                     splits.push(*beam);
-                    println!("split at {} => {:?}", pos, splits);
+                    // println!("split at {} => {:?}", pos, splits);
                     continue;
                 } else if *cell == '.' {
                     // beam continues
@@ -104,76 +107,47 @@ pub fn aoc_2025_07_b(input: &str) -> Result<usize, String> {
         // println!("y={} splits={:?} dupes={}", y, splits, dupes);
 
         for beam in splits.iter() {
-            let possibilities = beam.count;
+            let incoming_possibilities = beam.count;
             let x = beam.x;
 
-            let index = match beams.binary_search(beam) {
-                Ok(i) => i,
-
-                Err(i) => i,
-            };
+            // remove x-1, x, x+1 range and re-insert updated beams
+            let chunk = beams
+                .extract_if(
+                    Beam::new(x - 1, usize::MIN)..Beam::new(x + 1, usize::MAX),
+                    |_| true,
+                )
+                .collect::<Vec<_>>();
 
             if x > 0 {
-                add_possibilities(&mut beams, index, x, -1, possibilities);
-            }
-            if x + 1 < width {
-                add_possibilities(&mut beams, index, x, 1, possibilities);
+                let existing = if chunk[0].x == x - 1 {
+                    chunk[0].count
+                } else {
+                    0
+                };
+                beams.insert(Beam::new(x - 1, existing + incoming_possibilities));
             }
 
-            // search and remove original beam after inserts or our index will be wrong
-            if let Ok(i) = beams.binary_search(beam) {
-                beams.remove(i);
-            };
+            let last = chunk.len()-1;
+            if x + 1 < width {
+                let existing = if chunk[last].x == x + 1 {
+                    chunk[last].count
+                } else {
+                    0
+                };
+                beams.insert(Beam::new(x + 1, existing + incoming_possibilities));
+            }
         }
         split_count = beams.iter().map(|b| b.count).sum::<usize>();
-        println!(
-            "row: {} split_count: {} #beams {} beams: [{:?}]",
-            y,
-            split_count,
-            beams.len(),
-            beams,
-        );
+        // println!(
+        //     "row: {} split_count: {} #beams {} beams: [{:?}]",
+        //     y,
+        //     split_count,
+        //     beams.len(),
+        //     beams,
+        // );
     }
 
     Ok(split_count)
-}
-
-fn add_possibilities(
-    beams: &mut Vec<Beam>,
-    index: usize,
-    x: i32,
-    offset: i32,
-    possibilities: usize,
-) {
-    let pos = x + offset;
-    let idx = index as isize + offset as isize;
-
-    if idx < 0 || idx >= beams.len() as isize {
-        // out of bounds, just insert
-        beams.insert(
-            if offset < 0 { 0usize } else { beams.len() } ,
-            Beam {
-                x: pos,
-                count: possibilities,
-            },
-        );
-        return;
-    }
-
-    match beams.get_mut(idx as usize) {
-        Some(beam) => {
-            beam.count += possibilities;
-        }
-        None => {
-            beams.insert(
-                idx as usize,
-                Beam {
-                    x: pos,
-                    count: possibilities,
-                },
-            );
-        }
-    }
 }
 
 pub const INPUT: &str = include_str!("input.txt");
