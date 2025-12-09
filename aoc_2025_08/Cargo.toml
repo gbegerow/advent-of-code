@@ -1,0 +1,50 @@
+[package]
+name = "aoc_2025_08"
+version = "0.1.0"
+authors = ["Georg Begerow <gbegerow+aoc@gmail.com>"]
+edition = "2024"
+
+[dependencies]
+aoc_utils = { path = "../aoc_utils" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# terminal visualization dependcies
+# crossterm = { workspace = true, optional = true }
+# ratatui = { workspace = true, optional = true }
+# graphc visualization dependencies
+# bevy = { workspace = true, optional = true }
+# #bevy_panorbit_camera = { workspace = true, optional = true }
+# bevy_ecs_tilemap = { workspace = true, optional = true }
+
+[dev-dependencies]
+divan = { workspace = true }
+rstest = { workspace = true }
+test-log = { workspace = true }
+
+# [features]
+# # default=["viz"]
+# viz = ["dep:crossterm", "dep:ratatui"]
+# build-visualize = ["bevy", "bevy_ecs_tilemap"] #"bevy_panorbit_camera"
+
+
+# [[bin]]
+# #cargo run --features viz --bin term-viz
+# name = "term-viz"
+# required-features = ["viz"]
+
+# [[bin]]
+# #cargo run --features build-visualize --bin visualize
+# name = "visualize"
+# required-features = ["build-visualize"]
+
+# [[bin]]
+# name = "aoc_{year}_{day}_a"
+
+# [[bin]]
+# name = "aoc_{year}_{day}_b"
+
+[[bench]]
+name = "aoc_2025_08_bench"
+path = "benches/benchmarks.rs"
+harness = false
