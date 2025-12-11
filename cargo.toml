@@ -13,8 +13,10 @@ nom_locate = "4.2.0"
 nom-supreme = "0.8.0"
 winnow = "0.7.14"
 glam = "0.30.9"
+smallvec = "1.13"
 regex = "1"
 crossterm = "0.29"
+colored = "3.0"
 ratatui = "0.29.0"
 memoize = "0.5"
 petgraph = "0.8"
@@ -36,6 +38,7 @@ thiserror = "2.0"
 dhat = "0.3.2"
 reqwest = { version = "0.12" }
 rayon = "1.7.0"
+bitvec = "1.0.1"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

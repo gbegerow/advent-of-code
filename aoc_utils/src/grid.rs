@@ -315,7 +315,7 @@ where
             values,
             width,
             height,
-            cursor: IVec2::ZERO,
+            cursor: IVec2::MIN,
             lower_bound: IVec2::ZERO,
             upper_bound: IVec2::new(width as i32 - 1, height as i32 - 1),
         })
@@ -357,7 +357,7 @@ where
                     "{}",
                     match x % 10 {
                         0 => '|',
-                        5 => ':',
+                        4 => ':', // rest 4 or 5? we want 3 ticks in between
                         _ => '\'',
                     }
                 )?;
@@ -366,13 +366,14 @@ where
         }
 
         let width = self.width; // .saturating_sub(1);
-        let cursor = self.to_index(self.cursor);
+        let cursor = if self.cursor != IVec2::MIN { self.to_index(self.cursor) } else { None };
         // grid
         for (index, c) in self.values.iter().enumerate() {
             //todo: if this is cursor pos we maybe change color
-            if Some(index) != cursor {
+            if  Some(index) != cursor {
                 write!(f, "{}", c)?;
             } else {
+                println!("Cursor at index {} pos {}", index, self.cursor);
                 write!(f, "@")?
             }
             if ((index + 1) % width) == 0 {
@@ -406,7 +407,7 @@ mod tests {
             values: exp_values.chars().collect(),
             width: exp_width,
             height: exp_height,
-            cursor: IVec2::ZERO,
+            cursor: IVec2::MIN,
             lower_bound: IVec2::ZERO,
             upper_bound: IVec2::new(
                 (exp_width - 1).try_into().unwrap(),
@@ -436,7 +437,7 @@ mod tests {
     ######.#";
     const GRID_01: &str = "#.#######>>.<^<##.<..<<##>v.><>##<^v^^>#######.#";
 
-    const DISPLAY_01: &str = "|''':''  
+    const DISPLAY_01: &str = "|''':'''
 #.###### |  1
 #>>.<^<# |  2
 #.<..<<# |  3
@@ -447,7 +448,7 @@ mod tests {
 
     const INPUT_02: &str = "123\n456\n789";
     const GRID_02: &str = "123456789";
-    const DISPLAY_02: &str = "|'''\n123 |  1\n456 |  2\n789 |  3\n";
+    const DISPLAY_02: &str = "|''\n123 |  1\n456 |  2\n789 |  3\n";
 
     // const INPUT_01: &str = "";
     // const GRID_01: &Grid<char> = &Grid {

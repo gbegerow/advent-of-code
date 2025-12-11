@@ -1,17 +1,24 @@
 // #[allow(dead_code)]
 /* Find the task under https://adventofcode.com/2025/day/08
     Solution idea:
-
+    k-D tree for spatial queries
+    Time to put one implementation into our aoc_utils
 */
 // use aoc_utils::grid::Grid;
+use aoc_utils::k_d_tree::IKdTree3d;
 
 #[tracing::instrument]
 pub fn aoc_2025_08_a(input: &str) -> usize {
-    // let grid = input.parse::<Grid<char>>().expect("valid grid");
-    // let x =input.trim().lines().map(|l| .... )
-    // for line in input.trim().lines() {
-    //     //
-    // }
+    let points =input.trim().lines().map(|l| {
+        let mut parts = l.split(',').map(|n| n.parse::<i32>().unwrap());
+        let x = parts.next().unwrap();
+        let y = parts.next().unwrap();
+        let z = parts.next().unwrap();
+        glam::IVec3::new(x,y,z)
+    }).collect::<Vec<_>>();
+    let tree = IKdTree3d::new(points, 16);
+
+    
     0
 }
 
