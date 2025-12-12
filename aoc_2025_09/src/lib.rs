@@ -100,13 +100,12 @@ fn calc_area(i: Tile, j: Tile) -> i64 {
     let dx = (ip.x - jp.x).abs() + 1;
     let dy = (ip.y - jp.y).abs() + 1;
 
-    let area = dx * dy;
+    dx * dy
     // println!("Rect {:?} to  {:?} => area {}", i, j, area);
-    area
 }
 
 #[allow(dead_code)]
-fn get_bounds(tiles: &Vec<Tile>) -> (i64, i64, i64, i64) {
+fn get_bounds(tiles: &[Tile]) -> (i64, i64, i64, i64) {
     // returns (min_x, max_x, min_y, max_y)
     tiles.iter().fold(
         (i64::MAX, i64::MIN, i64::MAX, i64::MIN),
@@ -123,7 +122,7 @@ fn get_bounds(tiles: &Vec<Tile>) -> (i64, i64, i64, i64) {
 }
 
 /// Get the edges of the polygon defined by the red tiles
-fn get_polygon_edges(tiles: &Vec<Tile>) -> Vec<(I64Vec2, I64Vec2)> {
+fn get_polygon_edges(tiles: &[Tile]) -> Vec<(I64Vec2, I64Vec2)> {
     let vertices: Vec<I64Vec2> = tiles.iter().map(|t| t.position()).collect();
     if vertices.len() < 3 {
         return vec![];
@@ -146,18 +145,16 @@ fn point_inside_polygon(point: I64Vec2, edges: &[(I64Vec2, I64Vec2)]) -> bool {
 
     for &(p1, p2) in edges {
         // point is exactly on horizontal edge
-        if point.y == p1.y
+        if (point.y == p1.y
             && point.y == p2.y
             && point.x >= p1.x.min(p2.x)
-            && point.x <= p1.x.max(p2.x)
-        {
-            return true; // on edge is considered inside
-        } else
+            && point.x <= p1.x.max(p2.x))
+        
         // point is exactly on vertical edge
-        if point.x == p1.x
+        || (point.x == p1.x
             && point.x == p2.x
             && point.y >= p1.y.min(p2.y)
-            && point.y <= p1.y.max(p2.y)
+            && point.y <= p1.y.max(p2.y))
         {
             return true; // on edge is considered inside
         } else
@@ -251,15 +248,15 @@ fn rect_is_inside_polygon(
 
     // the original vertices of the polygon are for sure part of the polygon
     // the opposite corners of the rectangle might must be tested
-    if point_inside_polygon(I64Vec2::new(a.x, b.y), edges) == false
-        || point_inside_polygon(I64Vec2::new(b.x, a.y), edges) == false
+    if !point_inside_polygon(I64Vec2::new(a.x, b.y), edges)
+        || !point_inside_polygon(I64Vec2::new(b.x, a.y), edges)
     {
         return false;
     }
 
     // test middle point of rectangle to catch rectangles enclosed on 3 of the 4 edges
     let mid = I64Vec2::new((a.x + b.x) / 2, (a.y + b.y) / 2);
-    if point_inside_polygon(mid, edges) == false {
+    if !point_inside_polygon(mid, edges) {
         return false;
     }
 
@@ -267,7 +264,7 @@ fn rect_is_inside_polygon(
 }
 
 #[allow(dead_code)]
-fn polygon_is_convex(tiles: &Vec<Tile>) -> bool {
+fn polygon_is_convex(tiles: &[Tile]) -> bool {
     let vertices: Vec<I64Vec2> = tiles.iter().map(|t| t.position()).collect();
     if vertices.len() < 4 {
         return true; // Triangles are always convex
@@ -298,7 +295,7 @@ fn polygon_is_convex(tiles: &Vec<Tile>) -> bool {
 }
 
 #[allow(dead_code)]
-fn get_all_tiles_list(red_tiles: &Vec<Tile>) -> Vec<Tile> {
+fn get_all_tiles_list(red_tiles: &[Tile]) -> Vec<Tile> {
     let (min_x, max_x, min_y, max_y) = get_bounds(red_tiles);
     let edges = get_polygon_edges(red_tiles);
     let mut all_tiles: Vec<Tile> = Vec::new();
@@ -316,7 +313,7 @@ fn get_all_tiles_list(red_tiles: &Vec<Tile>) -> Vec<Tile> {
 }
 
 #[allow(dead_code)]
-fn draw(tiles: &Vec<Tile>, rect: Option<(I64Vec2, I64Vec2)>) {
+fn draw(tiles: &[Tile], rect: Option<(I64Vec2, I64Vec2)>) {
     let (_, max_x, _, max_y) = get_bounds(tiles);
     let max_x = max_x + 2;
 
@@ -348,12 +345,10 @@ fn draw(tiles: &Vec<Tile>, rect: Option<(I64Vec2, I64Vec2)>) {
                     (TileColor::Green, false) => print!("{}", "X".green()),
                     (_, true) => print!("{}", "O".white()),
                 }
+            } else if in_rect {
+                print!("{}", "O".bold().yellow().on_magenta());
             } else {
-                if in_rect {
-                    print!("{}", "O".bold().yellow().on_magenta());
-                } else {
-                    print!("{}", ".");
-                }
+                print!(".");
             }
         }
         println!(" {:<3}", y);
@@ -384,20 +379,16 @@ pub fn aoc_2025_09_a(input: &str) -> usize {
         .unwrap() as usize
 }
 
-fn rect_is_inside_polygon2(
-    a: I64Vec2,
-    b: I64Vec2,
-    edges: &[(I64Vec2, I64Vec2)],
-) -> bool {
+fn rect_is_inside_polygon2(a: I64Vec2, b: I64Vec2, edges: &[(I64Vec2, I64Vec2)]) -> bool {
     let (min_x, max_x, min_y, max_y) = (a.x.min(b.x), a.x.max(b.x), a.y.min(b.y), a.y.max(b.y));
 
     // Check that all lines are outside or on the rectangle. Is this sufficient?
     edges.iter().all(|(p1, p2)| {
-        // let line_on_outside = 
-            (p1.x <= min_x && p2.x <= min_x) || // both points left of rectangle
+        // let line_on_outside =
+        (p1.x <= min_x && p2.x <= min_x) || // both points left of rectangle
             (p1.x >= max_x && p2.x >= max_x) || // both points right of rectangle
             (p1.y <= min_y && p2.y <= min_y) || // both points above rectangle
-            (p1.y >= max_y && p2.y >= max_y)   // both points below rectangle
+            (p1.y >= max_y && p2.y >= max_y) // both points below rectangle
     })
 }
 
@@ -440,14 +431,17 @@ pub fn aoc_2025_09_b(input: &str) -> usize {
     areas.sort_by_key(|(area, (_, _))| -area); // descending order
 
     // find the first area that is fully inside the polygon = max valid area
-    areas.into_iter().find_map(|(area, (a, b))| {
-        // if rect_is_inside_polygon(*a, *b, &red_tiles, &edges) {
-        if rect_is_inside_polygon2(a, b, &edges) {
-            Some(area as usize)
-        } else {
-            None
-        }
-    }).expect("No valid rectangle found") 
+    areas
+        .into_iter()
+        .find_map(|(area, (a, b))| {
+            // if rect_is_inside_polygon(*a, *b, &red_tiles, &edges) {
+            if rect_is_inside_polygon2(a, b, &edges) {
+                Some(area as usize)
+            } else {
+                None
+            }
+        })
+        .expect("No valid rectangle found")
 }
 
 pub const INPUT: &str = include_str!("input.txt");
@@ -540,7 +534,7 @@ mod tests {
     #[case(TEST_INPUT, 9, 5, 2, 3, true)]
     #[case(TEST_INPUT, 2, 5, 11, 1, false)]
     #[case(TEST_INPUT, 2, 5, 11, 1, false)]
-    #[case(TEST_INPUT, 9, 7, 11, 1, false)]
+    #[case(TEST_INPUT, 9, 7, 11, 1, true)]
     fn test_rect_inside_polygon(
         #[case] input: &str,
         #[case] x1: i64,
@@ -557,10 +551,15 @@ mod tests {
             Some((I64Vec2::new(x1, y1), I64Vec2::new(x2, y2))),
         );
 
-        let result = super::rect_is_inside_polygon(
+        // let result = super::rect_is_inside_polygon(
+        //     I64Vec2::new(x1, y1),
+        //     I64Vec2::new(x2, y2),
+        //     &red_tiles,
+        //     &edges,
+        // );
+        let result = super::rect_is_inside_polygon2(
             I64Vec2::new(x1, y1),
             I64Vec2::new(x2, y2),
-            &red_tiles,
             &edges,
         );
         assert_eq!(
@@ -571,6 +570,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore] 
     fn draw_all() {
         let red_tiles = super::parse(TEST_INPUT);
         let all_tiles = super::get_all_tiles_list(&red_tiles);
@@ -599,7 +599,9 @@ mod tests {
     }
 
     #[rstest]
+    #[ignore] 
     #[case(TEST_INPUT)]
+    #[ignore] 
     #[case(crate::INPUT)]
     fn longest_edges(#[case] input: &str) {
         let red_tiles = super::parse(input);

@@ -373,7 +373,7 @@ where
             if  Some(index) != cursor {
                 write!(f, "{}", c)?;
             } else {
-                println!("Cursor at index {} pos {}", index, self.cursor);
+                // info!("Cursor at index {} pos {}", index, self.cursor);
                 write!(f, "@")?
             }
             if ((index + 1) % width) == 0 {
