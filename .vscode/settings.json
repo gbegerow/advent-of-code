@@ -1,7 +1,4 @@
 {
-    "rust-analyzer.linkedProjects": [
-        ".\\aoc_2022_14\\Cargo.toml"
-    ],
     "rust-analyzer.diagnostics.disabled": [
         "inactive-code"
     ]

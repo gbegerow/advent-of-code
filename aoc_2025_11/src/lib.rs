@@ -196,7 +196,9 @@ pub fn aoc_2025_11_b(input: &str) -> usize {
     };
 
     cached_count_paths(
+        // start node / state
         start,
+        // successors of current node / state
         &mut |node: &NodeData| {
             // move access to node out of closure
             let _parent = node.name;
@@ -220,7 +222,9 @@ pub fn aoc_2025_11_b(input: &str) -> usize {
                 //     println!("{:?} -> {:?}", parent, n);
                 // })
         },
+        // success condition
         &mut |node: &NodeData| node.name == end.name && node.visited_dac && node.visited_fft,
+        // AHash alias for caching
         &mut HashMap::new(),
     )
 }
