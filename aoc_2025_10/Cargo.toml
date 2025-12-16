@@ -13,6 +13,9 @@ bitvec = { workspace = true }
 regex = { workspace = true }
 ndarray = { workspace = true }
 ndarray-linalg = { workspace = true }
+# Environment Z3_LIBRARY_PATH_OVERRIDE must point to bin and  Z3_SYS_Z3_HEADER to include 
+# z3 = { workspace = true }
+
 
 # terminal visualization dependcies
 # crossterm = { workspace = true, optional = true }
@@ -26,6 +29,7 @@ ndarray-linalg = { workspace = true }
 divan = { workspace = true }
 rstest = { workspace = true }
 test-log = { workspace = true }
+
 
 # [features]
 # # default=["viz"]

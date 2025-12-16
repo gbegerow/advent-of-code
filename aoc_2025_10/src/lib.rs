@@ -13,22 +13,27 @@
     analytical solution?
     system of linear equations s. https://docs.rs/ndarray-linalg/latest/ndarray_linalg/solve/
     has glam a similar functionality?
-       
+
     button mask (1,3) -> [0,1,0,1,0]  increase counter 1 and 3 by 1
     press button 3 times -> increase counter 1 and 3 by 3*1 aka multiply button mask with number of presses
 
     a1 * b1 + a2 * b2 + ... + an * bn = r
     ai = number of presses of button i
     bi = button mask vector for button i
-    r = requirement vector  
+    r = requirement vector
 
 
     B a = r but B is not square
     System is underdetermined, may have multiple solutions or no solution
 
-    How to solve this? 
+    How to solve this?
     least_squares seems a possibility. Can linalg handle integer only solutions?
-*/
+
+    Time to learn Z3. 
+    Z3 is not usable on this machine
+
+    what options are left????
+    */
 
 use std::str::FromStr;
 // use winnow::prelude::*;
@@ -40,10 +45,9 @@ use std::str::FromStr;
 use bitvec::prelude::*;
 use regex::Regex;
 
-
-use ndarray::{array, Array1, Array2};
+use ndarray::{Array1, Array2};
 use ndarray_linalg::LeastSquaresSvdInto; // for least squares solving, consumes input matrix
-
+// use Z3::{Config, Context, Solver, ast::Int};
 
 #[derive(Clone, PartialEq, Eq)]
 /// Representation of the machine state
@@ -101,24 +105,26 @@ impl Machine {
         result_state == self.light_pattern
     }
 
-    fn apply_button_seqence_to_counters(&self, button_sequence: &[usize]) -> Vec<usize> {
-        let mut state = vec![0; self.requirement.len()]; // initial state all off
-        for &button_index in button_sequence {
-            let button = &self.button_wiring[button_index];
-            for (i, bit) in button.iter().by_vals().enumerate() {
-                if bit {
-                    state[i] += 1;
-                }
-            }
-        }
-        state
-    }
+    // #[allow(dead_code)]
+    // fn apply_button_seqence_to_counters(&self, button_sequence: &[usize]) -> Vec<usize> {
+    //     let mut state = vec![0; self.requirement.len()]; // initial state all off
+    //     for &button_index in button_sequence {
+    //         let button = &self.button_wiring[button_index];
+    //         for (i, bit) in button.iter().by_vals().enumerate() {
+    //             if bit {
+    //                 state[i] += 1;
+    //             }
+    //         }
+    //     }
+    //     state
+    // }
 
+    #[allow(dead_code)]
     fn solve_with_least_squares(&self) -> Result<Vec<usize>, String> {
         let m = self.requirement.len();
-        let n = self.button_wiring.len();
 
-       
+        // Build matrix B
+        #[allow(non_snake_case)]
         let B = build_B(m, &self.button_wiring);
 
         // Build requirement vector r
@@ -131,15 +137,104 @@ impl Machine {
         println!("B: {:?}\nr: {:?}", B, r);
 
         // Solve least squares problem B * a = r
-        let a = B.least_squares(&r).map_err(|e| e.to_string())?.solution;
+        let a = B.least_squares_into(r).map_err(|e| e.to_string())?.solution;
         println!("Least squares solution a: {:?}", a);
 
-        // Round solution to nearest integers
-        let a_int: Vec<usize> = a.iter().map(|&x| x.round() as usize).collect();
+        // Round solution to nearest integers - fail!
+        // We could try to multiply with factors 2, 3, 4, 5,... untill all solutions are in epsilon range of integers
+        // then round and divide by greatest common divisor. Would work for sample input, but is it guaranteed to work in general?
+        // this does not give good integer solutions at all... Time to learn Z3
+        let epsilon = 1e-2;
+        let mut multiplier = 1.0;
+        let mut a_int: Vec<usize> = a
+            .iter()
+            .map(|&x| (x * multiplier).round() as usize)
+            .collect();
+        let mut deviation: f64 = a
+            .iter()
+            .zip(a_int.iter())
+            .map(|(&x, &y)| (x - y as f64).abs())
+            .sum();
+
+        while deviation > epsilon && multiplier < 100.0 {
+            multiplier = multiplier + 1.0;
+
+            a_int = a
+                .iter()
+                .map(|&x| (x * multiplier).round() as usize)
+                .collect();
+            deviation = a
+                .iter()
+                .zip(a_int.iter())
+                .map(|(&x, &y)| (x - y as f64).abs())
+                .sum();
+        }
+
+        // rounding makes 367 instead of 366, so there will be no gcd reduction which is needed
         println!("Rounded integer solution a_int: {:?}", a_int);
+
+        let gcd = gcd_all(&a_int);
+        if gcd > 1 {
+            for x in &mut a_int {
+                *x /= gcd;
+            }
+            println!("Divided by GCD {}: {:?}", gcd, a_int);
+        } else {
+            println!("GCD is 1, no division performed");
+        }
 
         Ok(a_int)
     }
+
+    // #[allow(dead_code)]
+    // fn solve_with_z3(&self) -> Result<Vec<usize>, String> {
+    //     let m = self.requirement.len();
+    //     let n = self.button_wiring.len();
+
+    //     // Initialize Z3 context and solver
+    //     let solver = Solver::new(;
+
+    //     // Create integer variables for button presses (no 0.5 presses allowed)
+    //     let button_vars: Vec<Int> = (0..n)
+    //         .map(|i| Int::fresh_const(format!("button_{}", i)))
+    //         .collect();
+
+    //     // Add constraints: button presses >= 0 (no negative presses)
+    //     for var in &button_vars {
+    //         solver.assert(&var.ge(&Int::from_i64(0)));
+    //     }
+
+    //     // Add constraints for each joltage counter
+    //     // button_1 * b1 + button_2 * b2 + ... + button_n * bn = requirement
+    //     for i in 0..m {
+    //         let mut expr = Int::from_i64(&ctx, 0);
+    //         for j in 0..n {
+    //             if self.button_wiring[j][i] {
+    //                 expr = expr.add(&[&button_vars[j]]);
+    //             }
+    //         }
+    //         solver.assert(&expr._eq(&Int::from_i64(&ctx, self.requirement[i] as i64)));
+    //     }
+
+    //     // Check satisfiability
+    //     if solver.check() {
+    //         let model = solver.get_model().ok_or("Failed to get model")?;
+    //         let solution: Vec<usize> = button_vars
+    //             .iter()
+    //             .map(|var| {
+    //                 model
+    //                     .eval(var, true)
+    //                     .and_then(|val| val.as_i64())
+    //                     .map(|v| v as usize)
+    //                     .ok_or("Failed to evaluate variable")
+    //             })
+    //             .collect::<Result<Vec<usize>, &str>>()
+    //             .map_err(|e| e.to_string())?;
+    //         Ok(solution)
+    //     } else {
+    //         Err("No solution found".to_string())
+    //     }
+    // }
 }
 
 impl FromStr for Machine {
@@ -362,19 +457,41 @@ where
 
 // Solving use the hard weapon: MATH
 // Solve system of linear equations via ndarray-linalg
+// no integer solution :-(
 
-/// Build a 0/1 column vector of length `m` with ones at the given indices.
-fn button_to_vector(m: usize, ones: &[usize]) -> Array1<f64> {
-    let mut v = Array1::<f64>::zeros(m);
-    for &idx in ones {
-        v[idx] = 1.0;
-    }
-    v
+// Build a 0/1 column vector of length `m` from  BitVec
+    #[allow(dead_code)]
+fn button_to_vector(m: usize, ones: &BitVec) -> Array1<f64> {
+    assert!(
+        ones.len() == m,
+        "Button BitVec length {} does not match expected length {}",
+        ones.len(),
+        m
+    );
+    ones.iter()
+        .by_vals()
+        .map(|bit| if bit { 1.0 } else { 0.0 })
+        .collect::<Array1<f64>>()
 }
 
+/// Compute greatest common divisor via Euclidean algorithm
+#[allow(dead_code)]
+fn gcd(a: usize, b: usize) -> usize {
+    if b == 0 {
+        a
+    } else {
+        gcd(b, a % b)
+    }
+}
+
+fn gcd_all(numbers: &[usize]) -> usize {
+    numbers.iter().cloned().reduce(gcd).unwrap_or(1)
+}
 
 /// Build matrix B by concatenating button vectors as columns
-fn build_B(m: usize, button_masks: &[Vec<usize>]) -> Array2<f64> {
+#[allow(non_snake_case)]
+    #[allow(dead_code)]
+fn build_B(m: usize, button_masks: &[BitVec]) -> Array2<f64> {
     let n = button_masks.len();
     let mut B = Array2::<f64>::zeros((m, n));
     for (j, ones) in button_masks.iter().enumerate() {
@@ -383,8 +500,6 @@ fn build_B(m: usize, button_masks: &[Vec<usize>]) -> Array2<f64> {
     }
     B
 }
-
-
 
 #[tracing::instrument]
 pub fn aoc_2025_10_a(input: &str) -> Result<usize, String> {
@@ -399,17 +514,16 @@ pub fn aoc_2025_10_a(input: &str) -> Result<usize, String> {
         let max_len = 10; // arbitrary limit to avoid infinite loops in case of no solution. Is there a better way?
         let result = find_minimal_variation(machine.button_wiring.len(), is_goal, max_len);
         if let Some(button_sequence) = result {
-                // println!(
-                //     "Found init sequence for machine {:?}: {:?} (length {})",
-                //     machine,
-                //     button_sequence,
-                //     button_sequence.len()
-                // );
-                button_presses += button_sequence.len();
+            // println!(
+            //     "Found init sequence for machine {:?}: {:?} (length {})",
+            //     machine,
+            //     button_sequence,
+            //     button_sequence.len()
+            // );
+            button_presses += button_sequence.len();
         } else {
             println!("No init sequence found for machine {:?}", machine);
         }
-
     }
 
     Ok(button_presses)
@@ -417,29 +531,43 @@ pub fn aoc_2025_10_a(input: &str) -> Result<usize, String> {
 
 #[tracing::instrument]
 pub fn aoc_2025_10_b(input: &str) -> Result<usize, String> {
-      let machines = parse(input)?;
+    let machines = parse(input)?;
 
     let mut button_presses = 0;
 
     for machine in machines {
-        let is_goal = |seq: &[usize]| &machine.requirement ==seq;
-        let max_len = machine.requirement.iter().max().ok_or("Empty requirement")? + 1; // arbitrary limit to avoid infinite loops in case of no solution. Is there a better way?
-        
         // iterate over variations of button presses if far too slow
         // np complete is kicking in here...
-        let result = find_minimal_variation(machine.button_wiring.len(), is_goal, max_len);
-        if let Some(button_sequence) = result {
-                // println!(
-                //     "Found init sequence for machine {:?}: {:?} (length {})",
-                //     machine,
-                //     button_sequence,
-                //     button_sequence.len()
-                // );
-                button_presses += button_sequence.len();
-        } else {
-            println!("No init sequence found for machine {:?}", machine);
-        }
+        // let is_goal = |seq: &[usize]| &machine.requirement ==seq;
+        // let max_len = machine.requirement.iter().max().ok_or("Empty requirement")? + 1; // arbitrary limit to avoid infinite loops in case of no solution. Is there a better way?
 
+        // let result = find_minimal_variation(machine.button_wiring.len(), is_goal, max_len);
+        // if let Some(button_sequence) = result {
+        //         // println!(
+        //         //     "Found init sequence for machine {:?}: {:?} (length {})",
+        //         //     machine,
+        //         //     button_sequence,
+        //         //     button_sequence.len()
+        //         // );
+        //         button_presses += button_sequence.len();
+        // } else {
+        //     println!("No init sequence found for machine {:?}", machine);
+        // }
+
+        // use least squares to solve system of linear equations. Integer solution pretty please
+        let button_sequence = machine.solve_with_least_squares()?;
+        
+        // cannot get Z3 to work on my system, missing library files during linking phase and needs clang even with binaries
+        // let button_sequence = machine.solve_with_z3()?;
+        
+        println!(
+            "Found button sequence for machine {:?}: {:?} (length {})",
+            machine,
+            button_sequence,
+            button_sequence.iter().sum::<usize>()
+        );
+
+        button_presses += button_sequence.iter().sum::<usize>();
     }
 
     Ok(button_presses)
@@ -452,8 +580,8 @@ mod tests {
     use super::find_minimal_variation;
     use super::Machine;
     use bitvec::prelude::*;
-    use rstest::rstest;
     use ndarray::prelude::*;
+    use rstest::rstest;
 
     #[rstest]
     #[case(TEST_INPUT_LINE_1, Ok(2))]
@@ -526,8 +654,12 @@ mod tests {
     #[case( TEST_INPUT_LINE_1, Some(vec![1, 3]), 3 )]
     #[case( TEST_INPUT_LINE_2, Some(vec![2,3,4]), 3 )]
     #[case( TEST_INPUT_LINE_3, Some(vec![1,2]), 3 )]
-    #[case( TEST_INPUT_LINE_1, None, 1 )]
-    fn find_minimal_init_sequence(#[case] input: &str, #[case] button_sequence: Option<Vec<usize>>, #[case] max_len: usize) {
+    #[case(TEST_INPUT_LINE_1, None, 1)]
+    fn find_minimal_init_sequence(
+        #[case] input: &str,
+        #[case] button_sequence: Option<Vec<usize>>,
+        #[case] max_len: usize,
+    ) {
         let machine: Machine = input.trim().parse().unwrap();
         let is_goal = |seq: &[usize]| machine.is_init_sequence(seq);
 
@@ -536,20 +668,24 @@ mod tests {
         assert_eq!(result, button_sequence);
     }
 
-    #[rstest]
-    #[case( TEST_INPUT_LINE_1, vec![0, 1,1,1, 3,3,3, 4, 5,5])]
-    #[case( TEST_INPUT_LINE_2, vec![0,0, 1,1,1,1,1, 3,3,3,3,3])]
-    fn apply_button_seqence_to_counters(#[case] input: &str, #[case] button_sequence: Vec<usize>) {
-        let machine: Machine = input.trim().parse().unwrap();
-        let result_state = machine.apply_button_seqence_to_counters(&button_sequence);
-        let expected_state = machine.requirement.clone();
+    // #[rstest]
+    // #[case( TEST_INPUT_LINE_1, vec![0, 1,1,1, 3,3,3, 4, 5,5])]
+    // #[case( TEST_INPUT_LINE_2, vec![0,0, 1,1,1,1,1, 3,3,3,3,3])]
+    // fn apply_button_seqence_to_counters(#[case] input: &str, #[case] button_sequence: Vec<usize>) {
+    //     let machine: Machine = input.trim().parse().unwrap();
+    //     let result_state = machine.apply_button_seqence_to_counters(&button_sequence);
+    //     let expected_state = machine.requirement.clone();
 
-        assert_eq!(result_state, expected_state);
-    }
+    //     assert_eq!(result_state, expected_state);
+    // }
 
     #[rstest]
-    #[case( TEST_INPUT_LINE_1, vec![3], Array1::from_vec(vec![0.0,0.0,0.0,1.0]) )]
-    fn button_to_vector_example(#[case] input: &str, #[case] button: Vec<usize>, #[case] expected: Array1<f64>) {
+    #[case( TEST_INPUT_LINE_1, bitvec![0,0,0,1], Array1::from_vec(vec![0.0,0.0,0.0,1.0]) )]
+    fn button_to_vector_example(
+        #[case] input: &str,
+        #[case] button: BitVec,
+        #[case] expected: Array1<f64>,
+    ) {
         let machine: Machine = input.trim().parse().unwrap();
         let m = machine.requirement.len();
         let result = super::button_to_vector(m, &button);
@@ -570,4 +706,3 @@ mod tests {
     #[allow(dead_code)]
     const TEST_INPUT_2: &str = "";
 }
-

@@ -39,8 +39,17 @@ dhat = "0.3.2"
 reqwest = { version = "0.12" }
 rayon = "1.7.0"
 bitvec = "1.0.1"
+
+# link ndarray statically against MKL, should be viable for most systems 
 ndarray = "0.17.1"
-ndarray-linalg = "0.18.0"
+ndarray-linalg = {  version = "0.18.0", features = ["intel-mkl-static"]  }
+intel-mkl-src = "0.8.1"
+# Environment Z3_LIBRARY_PATH_OVERRIDE must point to bin and  Z3_SYS_Z3_HEADER to include, and we need clang installed instead of MSVC for bindgen :-(
+# z3 = "0.19.0"
+# z3-sys = {version="0.10.3", features = ["gh-release"]} 
+
+
+
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
