@@ -29,7 +29,8 @@ impl Axis {
 }
 
 
-
+/// Axis-aligned bounding box for integer 3D points
+/// empty AABB has min > max
 #[derive(Clone, Copy, Debug)]
 pub struct IAabb {
     pub min: IVec3,
@@ -66,6 +67,11 @@ impl IAabb {
             max: IVec3::new(i32::MIN, i32::MIN, i32::MIN),
         }
     }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.min.x > self.max.x || self.min.y > self.max.y || self.min.z > self.max.z
+    }
 }
 
 #[derive(Clone)]
@@ -87,18 +93,33 @@ impl std::fmt::Debug for Node {
 
 
 /// k-D tree for 3D integer points
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct IKdTree3d {
     nodes: Vec<Node>,
     /// Original points, stable storage
     points: Vec<IVec3>,
     /// Permutation over points used by leaves
     indices: Vec<usize>,
+    /// `leaf_size` ~ 16–64 is a good start. 
+    /// Larger leaf_size = shallower tree, faster build, slower queries.
+    /// Smaller leaf_size = deeper tree, slower build, slower traversal, faster queries.
     leaf_size: usize,
 }
 
+impl std::fmt::Debug for IKdTree3d {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
+        write!(f, "IKdTree3d [{}] {{ nodes: {:?}, points: {:?}, indices: {:?} }}", 
+            self.leaf_size,self.nodes, self.points, self.indices )
+
+        // f.debug_struct("IKdTree3d").field("nodes", &self.nodes).field("points", &self.points).field("indices", &self.indices).field("leaf_size", &self.leaf_size).finish()
+    }
+}
+
+
+
 impl IKdTree3d {
-    /// Build from integer points. 
+    /// Build from integer points in 3D. 
     /// `leaf_size` ~ 16–64 is a good start. 
     /// Larger leaf_size = shallower tree, faster build, slower queries.
     /// Smaller leaf_size = deeper tree, slower build, slower traversal, faster queries.
@@ -109,7 +130,7 @@ impl IKdTree3d {
     /// ```
     pub fn new(points: Vec<IVec3>, leaf_size: usize) -> Self {
         let n = points.len();
-        let mut indices: Vec<usize> = vec![0; n];
+        let mut indices: Vec<usize> = (0..n).collect();
         let mut nodes = Vec::with_capacity(n.saturating_mul(2).max(1));
 
         // Global AABB
@@ -151,7 +172,7 @@ impl IKdTree3d {
             }
 
             // Median split by the selected axis
-            // some recommend using a random subselection for median, but select_nth_unstable is fast enough
+            // some recommend using a random subselection for median, but select_nth_unstable is fast enough in our cases
             let mid = start + count / 2;
 
             let axis_key = |p: IVec3| -> i32 {
@@ -184,11 +205,7 @@ impl IKdTree3d {
             stack.push(StackEntry(start, mid, next_axis, left_aabb,  Some(node_index)));
         }
 
-        // println!("KD-Tree built (leafsize {}):\n{} points [{:?}],\n{} nodes [{:?}]", 
-        //     leaf_size, n, points, nodes.len(), nodes, );
-        println!("KD-Tree built (leafsize {}): {:?} nodes", 
-            leaf_size, nodes);
-        Self { nodes, points, indices, leaf_size }
+        dbg!(Self { nodes, points, indices, leaf_size })
     }
 
     /// AABB range query
@@ -199,7 +216,7 @@ impl IKdTree3d {
     /// ```
     pub fn range_query(&self, query: &IAabb) -> Vec<usize> {
         let mut out = Vec::new();
-        if self.nodes.is_empty() {
+        if self.nodes.is_empty() || query.is_empty() {
             return out;
         }
         let mut stack = vec![0usize];
@@ -229,6 +246,7 @@ impl IKdTree3d {
     /// let nearest = tree.nearest(IVec3::new(5,5,5));
     /// ```
     pub fn nearest(&self, q: IVec3) -> Option<usize> {
+        // println!("Nearest neighbor query for point: {:?} IsEmpty: {:?}", q, self.nodes);
         if self.nodes.is_empty() {
             return None;
         }
@@ -255,6 +273,11 @@ impl IKdTree3d {
                     0
                 }
             };
+
+            // println!("clamp_axis q: {:?}, aabb min: {:?}, max: {:?}", q, a.min, a.max);
+            if a.is_empty() {
+                return i64::MAX;
+            }
             clamp_axis(q.x, a.min.x, a.max.x)
             + clamp_axis(q.y, a.min.y, a.max.y)
             + clamp_axis(q.z, a.min.z, a.max.z)
@@ -268,20 +291,25 @@ impl IKdTree3d {
         while let Some(i) = stack.pop() {
             let n = &self.nodes[i];
 
+            println!("Looking for nearest from {} visiting node {}: {:?}", q, i, n);
             // Cheap pruning by AABB distance
-            if aabb_sqr_dist_i64(&n.aabb, q) > best_d2 {
+            if n.aabb.is_empty() || aabb_sqr_dist_i64(&n.aabb, q) >= best_d2 {
                 continue;
             }
 
+            // inside leaf, just search all points
             if n.end - n.start <= self.leaf_size {
+                println!("  Leaf node, scanning points {} to {}: {:?} - {:?}", n.start, n.end, self.points[self.indices[n.start]], self.points[self.indices[n.end - 1]]);
                 for &idx in &self.indices[n.start..n.end] {
                     let d2 = sqr_dist_i64(self.points[idx], q);
+                    println!("  Leaf point {:?} idx {} d2 {} best_d2 {}", self.points[idx], idx, d2, best_d2);
                     if d2 < best_d2 {
                         best_d2 = d2;
                         best_idx = Some(idx);
                     }
                 }
             } else {
+                // look across
                 // Visit near child first to tighten best_d2 early
                 // We approximate split position from child bounds
                 let axis = n.axis;

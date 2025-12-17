@@ -140,7 +140,7 @@ impl Machine {
         let a = B.least_squares_into(r).map_err(|e| e.to_string())?.solution;
         println!("Least squares solution a: {:?}", a);
 
-        // Round solution to nearest integers - fail!
+        // Round solution to nearest integers - fail! Try 2 first multiply to inteers and then divide by gcd - also fail
         // We could try to multiply with factors 2, 3, 4, 5,... untill all solutions are in epsilon range of integers
         // then round and divide by greatest common divisor. Would work for sample input, but is it guaranteed to work in general?
         // this does not give good integer solutions at all... Time to learn Z3
